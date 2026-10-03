@@ -1,68 +1,86 @@
 # QtOrderRelease
 
-QtOrder 的發布中心，以 GitHub Pages 提供各版本的版本資訊、下載點與版本說明。
-發布通道分為**穩定版**（`stable`）與**預覽版**（`preview`）。
+QtOrder 的發布中心：以 GitHub Pages 提供各版本的版本說明、下載檔案與 SHA-256，並產生 QtOrder 啟動器讀取的更新清單。
+用語（預覽版、穩定版、晉升、撤回、最低支援版本…）以 [CONTEXT.md](CONTEXT.md) 為準；為什麼這樣設計見 [docs/adr/](docs/adr/)。
 
-> 目前 `data/releases.json` 是模擬資料（`"mock": true`），頁面頂端會顯示提示，下載連結尚未對應實際檔案。
+> 目前 `data/releases.json` 是模擬資料（`"mock": true`）：頁面頂端顯示提示，部署時自動加上 `noindex`。
+> 依 [ADR-0002](docs/adr/0002-github-hosted-releases.md)，安裝程式與更新套件移除 GCP 金鑰之前，不放真實的下載連結。
 
 ## 結構
 
 ```text
-index.html                 頁面骨架（純靜態，無建置步驟）
-assets/css/site.css        樣式；色彩集中在 :root 的語意 token，支援深淺色
-assets/js/app.js           讀取 releases.json 並渲染，不內嵌任何版本資料
-assets/favicon.svg
-data/releases.json         唯一的資料來源，CI 只需要更新這個檔案
-data/releases.schema.json  releases.json 的 JSON Schema，CI 寫入後用它驗證
-.nojekyll                  讓 GitHub Pages 直接提供檔案，不經 Jekyll 處理
+index.html                    頁面骨架（純靜態）
+assets/js/app.js              讀取發布紀錄並渲染頁面
+assets/js/release-model.js    發布規則：最新版本、更新清單、跨欄位檢查；頁面與建置腳本共用
+assets/css/site.css           樣式；色彩集中在 :root 的語意 token，支援深淺色
+data/releases.json            發布紀錄，唯一的資料來源
+data/releases.schema.json     發布紀錄的 JSON Schema
+scripts/build-site.js         驗證發布紀錄，輸出網站與更新清單（_site/update.json）
+tests/                        發布規則的測試
+.github/workflows/pages.yml   PR 時驗證；合併到 main 後建置並部署 Pages
 ```
 
-## 本機預覽
-
-頁面以 `fetch` 讀取 JSON，直接用瀏覽器開啟 `index.html`（`file://`）會載入失敗，請起一個靜態伺服器：
+## 本機開發
 
 ```powershell
-python -m http.server 8080
-# 開啟 http://localhost:8080/
+npm ci
+npm test          # 發布規則測試
+npm run check     # 只驗證 data/releases.json
+npm run build     # 驗證後輸出 _site/（含 update.json）
+python -m http.server 8080 --directory _site   # 開啟 http://localhost:8080/
 ```
+
+直接用瀏覽器開啟 `index.html`（`file://`）會讀不到 JSON，請透過靜態伺服器。
 
 ## 啟用 GitHub Pages
 
-Settings → Pages → Build and deployment：Source 選 **Deploy from a branch**，Branch 選 `main`、資料夾 `/ (root)`。
-推送到 `main` 後約一分鐘生效，網址為 `https://projectontitan.github.io/QtOrderRelease/`。
+Settings → Pages → Build and deployment → Source 選 **GitHub Actions**。之後每次合併到 `main` 都會自動部署：
 
-## 資料契約（`data/releases.json`）
+- 發布中心：`https://projectontitan.github.io/QtOrderRelease/`
+- 更新清單：`https://projectontitan.github.io/QtOrderRelease/update.json`
 
-完整定義見 [`data/releases.schema.json`](data/releases.schema.json)，重點如下：
+GitHub Pages 約有 10 分鐘快取，發布後客戶最多晚 10 分鐘看到新版本。
+
+## 發布流程
+
+所有變更都以 PR 修改 `data/releases.json`，CI 驗證通過、人工審核後合併才生效。
+
+| 動作 | 修改內容 |
+| --- | --- |
+| 發布新版本 | QtOrder 的 CI 把安裝程式與更新套件上傳到本 repo 的 GitHub Release（tag `v<版本>`），再開 PR 新增一筆 `channel: "preview"` 的版本，附上從 commit 產生的版本說明草稿；審核時改寫成客戶看得懂的文字 |
+| 晉升 | 把該版本的 `channel` 改為 `"stable"`，填入 `promotedAt` |
+| 緊急修正 | 直接新增一筆 `channel: "stable"`、沒有 `promotedAt` 的版本；下一個預覽版必須包含同樣的修正 |
+| 撤回 | 填入 `withdrawn: { at, reason }`，並刪除該 GitHub Release 上的檔案。撤回不會強制已安裝的客戶更新；要強制，另外提高 `minimumVersion` |
+| 調整最低支援版本 | 修改 `minimumVersion`，必須是一個未撤回的穩定版 |
+
+每次修改都要更新 `generatedAt`。CI 會擋下這些錯誤：版本號帶預覽標記或重複、穩定版或預覽版的版本號沒有隨時間遞增、缺少安裝程式或更新套件、最低支援版本不是未撤回的穩定版。
+
+## 發布紀錄重點
+
+完整定義見 [`data/releases.schema.json`](data/releases.schema.json)。
 
 | 欄位 | 說明 |
-|---|---|
-| `mock` | `true` 時顯示模擬資料提示。改由 CI 產生正式資料後移除或設為 `false`。 |
-| `generatedAt` | 本檔最後產生時間（ISO 8601），顯示為「資料更新」。 |
-| `product.requirements` | 系統需求，每項一行純文字。 |
-| `releases[].version` | SemVer，不含 `v`。穩定版不得帶 prerelease 標記；預覽版必須帶（例如 `1.3.0-preview.1`）。 |
-| `releases[].channel` | `stable` 或 `preview`。 |
-| `releases[].publishedAt` | 發布時間（ISO 8601）。頁面依此由新到舊排序，**陣列順序不拘**，CI 直接附加即可。 |
-| `releases[].summary` | 一句話摘要。 |
-| `releases[].releaseUrl` | 對應的 GitHub Release 頁面。 |
-| `releases[].notes` | 版本說明，依 `breaking`／`features`／`improvements`／`fixes`／`knownIssues` 分組，每項一行純文字，可用反引號標示程式碼或檔名。 |
-| `releases[].assets[]` | 下載檔案：`name`、`kind`（`installer`／`portable`）、`url`、`size`（位元組）、`sha256`（小寫 hex）。`installer` 會排在前面作為主要下載。 |
+| --- | --- |
+| `minimumVersion` | 最低支援版本 |
+| `product.requirements`、`product.brokerRequirements` | 系統需求與各券商的前置條件 |
+| `releases[].version` | 純數字三段（例如 `1.7.1`），不得帶 `-preview` 等標記，見 [ADR-0001](docs/adr/0001-promotion-based-versioning.md) |
+| `releases[].channel` | `preview` 或 `stable`，晉升時改變 |
+| `releases[].publishedAt`、`promotedAt` | 第一次發布、晉升為穩定版的時間 |
+| `releases[].withdrawn` | 撤回時間與原因 |
+| `releases[].summary` | 一句話摘要，也是啟動器更新提示的內容 |
+| `releases[].notes` | 版本說明：`upgradeNotes`（升級須知）、`features`、`improvements`、`fixes`、`knownIssues` |
+| `releases[].assets` | `installer`（安裝程式）與 `update`（更新套件）各一個，含 `size` 與 `sha256` |
 
-各通道的「最新版本」取該通道 `publishedAt` 最新的一筆。
+各通道的最新版本取未撤回的最高版本號；預覽版沒有比穩定版新的版本時，頁面提示改用穩定版，更新清單的 `preview` 也指向穩定版。
 
-頁面行為：
+## 更新清單（`update.json`）
 
-- `?channel=stable`／`?channel=preview` 開啟時直接套用篩選。
-- `#v1.2.0` 會展開並捲動到該版本，可直接分享版本說明連結。
-- 所有資料以純文字寫入畫面，連結只接受 `http(s)`。
+沿用啟動器既有的格式，另加更新套件的 `sha256` 與 `size`，供啟動器下載後比對：
 
-## CI/CD 更新流程（規劃）
-
-發版時由 QtOrder 的 CI：
-
-1. 建置並計算各檔案的 SHA-256。
-2. 在本 repo 建立 GitHub Release（tag `v<version>`），上傳檔案。
-3. 在 `data/releases.json` 附加一筆 release、更新 `generatedAt`，並以 `releases.schema.json` 驗證。
-4. 提交到 `main`，GitHub Pages 自動重新部署。
-
-版本說明可由 Conventional Commits 對應：`feat` → `features`、`fix` → `fixes`、`perf`／`refactor` → `improvements`、`BREAKING CHANGE` → `breaking`。
+```json
+{
+  "stable":  { "version": "1.7.1", "url": "…/QtOrder_v1.7.1.zip", "sha256": "…", "size": 57737216, "description": "…" },
+  "preview": { "version": "1.8.0", "url": "…/QtOrder_v1.8.0.zip", "sha256": "…", "size": 58195968, "description": "…" },
+  "min_version": "1.6.2"
+}
+```
