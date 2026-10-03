@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://projectontitan.github.io/QtOrderRelease/data/releases.schema.json",
+  "title": "QtOrder 發布資料",
+  "description": "發布中心頁面唯一的資料來源。CI 發版時新增一筆 release，頁面依 publishedAt 由新到舊排序，陣列順序不拘。",
+  "type": "object",
+  "required": ["schemaVersion", "generatedAt", "product", "releases"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": 1 },
+    "mock": {
+      "type": "boolean",
+      "description": "true 時頁面頂端顯示「模擬資料」提示。改由 CI 產生正式資料後移除或設為 false。"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "本檔最後一次產生的時間，顯示在頁面上的「資料更新」。"
+    },
+    "product": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "repositoryUrl": { "type": "string", "format": "uri" },
+        "requirements": {
+          "type": "array",
+          "description": "系統需求，每項一行純文字。",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "releases": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/release" }
+    }
+  },
+  "$defs": {
+    "release": {
+      "type": "object",
+      "required": ["version", "channel", "publishedAt", "assets"],
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "SemVer，不含前綴 v。預覽版須帶 prerelease 標記（例如 1.3.0-preview.1）。",
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+        },
+        "channel": {
+          "enum": ["stable", "preview"],
+          "description": "stable＝穩定版，preview＝預覽版。"
+        },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "summary": {
+          "type": "string",
+          "description": "一句話摘要，顯示在最新版本卡片與版本歷程標題下方。"
+        },
+        "releaseUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "對應的 GitHub Release 頁面。"
+        },
+        "notes": { "$ref": "#/$defs/notes" },
+        "assets": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/asset" }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "channel": { "const": "stable" } } },
+          "then": { "properties": { "version": { "not": { "pattern": "-" } } } }
+        },
+        {
+          "if": { "properties": { "channel": { "const": "preview" } } },
+          "then": { "properties": { "version": { "pattern": "-" } } }
+        }
+      ]
+    },
+    "notes": {
+      "type": "object",
+      "description": "版本說明，依類型分組；每項一行純文字，可用反引號標示程式碼或檔名。",
+      "additionalProperties": false,
+      "properties": {
+        "breaking": { "$ref": "#/$defs/noteItems", "description": "重大變更" },
+        "features": { "$ref": "#/$defs/noteItems", "description": "新功能" },
+        "improvements": { "$ref": "#/$defs/noteItems", "description": "改善" },
+        "fixes": { "$ref": "#/$defs/noteItems", "description": "修正" },
+        "knownIssues": { "$ref": "#/$defs/noteItems", "description": "已知問題" }
+      }
+    },
+    "noteItems": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "asset": {
+      "type": "object",
+      "required": ["name", "kind", "size", "sha256", "url"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": {
+          "enum": ["installer", "portable"],
+          "description": "installer＝安裝程式，portable＝免安裝版。同一版本內 installer 排在前面，作為主要下載。"
+        },
+        "label": {
+          "type": "string",
+          "description": "選填，覆寫依 kind 產生的顯示名稱。"
+        },
+        "platform": { "type": "string", "examples": ["win-x64"] },
+        "size": { "type": "integer", "minimum": 0, "description": "位元組數" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "url": { "type": "string", "format": "uri" }
+      }
+    }
+  }
+}

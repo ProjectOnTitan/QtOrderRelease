@@ -1,0 +1,350 @@
+{
+  "$schema": "./releases.schema.json",
+  "schemaVersion": 1,
+  "mock": true,
+  "generatedAt": "2026-10-03T16:00:00+08:00",
+  "product": {
+    "name": "QtOrder",
+    "repositoryUrl": "https://github.com/ProjectOnTitan/QtOrderRelease",
+    "requirements": [
+      "Windows 10（1809 以上）或 Windows 11，64 位元",
+      ".NET 8 桌面執行階段（安裝程式會自動檢查，免安裝版需自行安裝）",
+      "可連線到券商交易主機與授權主機的網路",
+      "螢幕解析度 1366 × 768 以上"
+    ]
+  },
+  "releases": [
+    {
+      "version": "1.3.0-preview.1",
+      "channel": "preview",
+      "publishedAt": "2026-09-29T18:00:00+08:00",
+      "summary": "搶先體驗多帳號批次下單與策略訊號延遲監控面板。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.3.0-preview.1",
+      "notes": {
+        "features": [
+          "新增多帳號批次下單：可一次勾選多個交易帳號同步送單",
+          "新增策略訊號延遲監控面板，顯示訊號接收到送單完成的耗時分布"
+        ],
+        "improvements": [
+          "委託回報列表改為虛擬捲動，上萬筆資料仍維持流暢"
+        ],
+        "knownIssues": [
+          "帳號數超過 20 個時，批次送單確認視窗需要捲動才看得到「送出」按鈕"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.3.0-preview.1-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 151388160,
+          "sha256": "ad6ca1e5716d81cb90de98f631be5be283389391a1c9e33f3163955a5896a4e1",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.3.0-preview.1/QtOrder-1.3.0-preview.1-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.2.0",
+      "channel": "stable",
+      "publishedAt": "2026-09-22T18:00:00+08:00",
+      "summary": "手動下單改為勾選後送出，加入口數快捷按鈕與一鍵平倉。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.2.0",
+      "notes": {
+        "breaking": [
+          "設定檔格式更新：舊版 `hotkeys.json` 會在首次啟動時自動轉換，轉換後無法再由 1.1.x 讀取"
+        ],
+        "features": [
+          "手動下單改為勾選後統一送出，避免誤觸單筆送單",
+          "新增口數快捷按鈕（1／5／10 口）",
+          "新增一鍵平倉，送出前列出將平倉的部位供確認"
+        ],
+        "improvements": [
+          "批次下單標題列加入全選與反選",
+          "授權到期前 14 天於啟動時顯示提醒"
+        ],
+        "fixes": [
+          "修正切換帳號後部位列表偶爾未即時更新",
+          "修正系統匣圖示在高 DPI 螢幕上顯示模糊"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.2.0-win-x64-setup.exe",
+          "kind": "installer",
+          "platform": "win-x64",
+          "size": 101204992,
+          "sha256": "da69fbe973e94a8224b07ecefc1fec76b0810a0e3d3217a4b834ea37ea350655",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.2.0/QtOrder-1.2.0-win-x64-setup.exe"
+        },
+        {
+          "name": "QtOrder-1.2.0-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 148897792,
+          "sha256": "9d8ad40f51b9acf33871d139f2bdda78606261b249c3b4d38bd1b933cec98ddb",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.2.0/QtOrder-1.2.0-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.2.0-preview.2",
+      "channel": "preview",
+      "publishedAt": "2026-09-12T18:00:00+08:00",
+      "summary": "修正一鍵平倉的確認流程與鍵盤操作。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.2.0-preview.2",
+      "notes": {
+        "features": [
+          "一鍵平倉確認視窗加入部位清單"
+        ],
+        "fixes": [
+          "修正沒有部位時仍可按下一鍵平倉",
+          "修正口數快捷按鈕以鍵盤操作時沒有焦點外框"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.2.0-preview.2-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 148766720,
+          "sha256": "c3a1b45a85cc6a67246a2575f368beb582984a8235ed503538a584f5992f6d7f",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.2.0-preview.2/QtOrder-1.2.0-preview.2-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.2.0-preview.1",
+      "channel": "preview",
+      "publishedAt": "2026-09-01T18:00:00+08:00",
+      "summary": "搶先體驗勾選送單、口數快捷按鈕與一鍵平倉。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.2.0-preview.1",
+      "notes": {
+        "features": [
+          "手動下單改為勾選後統一送出",
+          "新增口數快捷按鈕",
+          "新增一鍵平倉（實驗性功能）"
+        ],
+        "knownIssues": [
+          "沒有部位時一鍵平倉按鈕不會停用"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.2.0-preview.1-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 148504576,
+          "sha256": "9c2e022b9547013b7c069649918a1c52a1aff98b25e4d203304ae7d18eb29760",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.2.0-preview.1/QtOrder-1.2.0-preview.1-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.1.1",
+      "channel": "stable",
+      "publishedAt": "2026-08-25T18:00:00+08:00",
+      "summary": "修正心跳逾時後未自動重新連線。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.1.1",
+      "notes": {
+        "fixes": [
+          "修正與授權主機心跳逾時後未自動重新連線",
+          "修正委託回報的時間欄位跨日後顯示錯誤日期"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.1.1-win-x64-setup.exe",
+          "kind": "installer",
+          "platform": "win-x64",
+          "size": 98566144,
+          "sha256": "87dbe6044cda3135a7590d50138327281c1900e5bb006f0468a978a59154497d",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.1.1/QtOrder-1.1.1-win-x64-setup.exe"
+        },
+        {
+          "name": "QtOrder-1.1.1-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 145489920,
+          "sha256": "4e5e1be65e3e6a119b000962884b606fea70acef946534647fa68aa07c21a12e",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.1.1/QtOrder-1.1.1-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "channel": "stable",
+      "publishedAt": "2026-08-11T18:00:00+08:00",
+      "summary": "新增排程停機與心跳監控狀態列。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.1.0",
+      "notes": {
+        "features": [
+          "新增排程停機：可設定每日收盤後自動結束程式",
+          "新增心跳監控狀態列，顯示與授權主機最後一次成功連線的時間"
+        ],
+        "improvements": [
+          "啟動時間縮短約 40%"
+        ],
+        "fixes": [
+          "修正券商帳號名稱含全形空白時無法登入"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.1.0-win-x64-setup.exe",
+          "kind": "installer",
+          "platform": "win-x64",
+          "size": 98435072,
+          "sha256": "ceb7f6cd760cc85690630794e66d34626e4ed0c65a2d5785d92609b92ddc4d86",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.1.0/QtOrder-1.1.0-win-x64-setup.exe"
+        },
+        {
+          "name": "QtOrder-1.1.0-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 145227776,
+          "sha256": "a7a7d24fad497b219e46659af764a4e32dff7be738171dc7459f8ef566ee07e6",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.1.0/QtOrder-1.1.0-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.1.0-preview.1",
+      "channel": "preview",
+      "publishedAt": "2026-07-28T18:00:00+08:00",
+      "summary": "搶先體驗排程停機與心跳監控。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.1.0-preview.1",
+      "notes": {
+        "features": [
+          "新增排程停機",
+          "新增心跳監控狀態列"
+        ],
+        "knownIssues": [
+          "排程停機時間跨越午夜時不會觸發"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.1.0-preview.1-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 144965632,
+          "sha256": "9313d2cfe4d321d317bbbc562672153694bd44a86a2d9b54c089a464db3f6624",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.1.0-preview.1/QtOrder-1.1.0-preview.1-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "channel": "stable",
+      "publishedAt": "2026-07-14T18:00:00+08:00",
+      "summary": "修正安裝與首次啟動的問題。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.0.1",
+      "notes": {
+        "fixes": [
+          "修正首次安裝時沒有建立記錄檔資料夾，導致程式無法啟動",
+          "修正以非系統管理員帳號安裝時無法建立桌面捷徑"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.0.1-win-x64-setup.exe",
+          "kind": "installer",
+          "platform": "win-x64",
+          "size": 96337920,
+          "sha256": "db87f3e2e42ce4b42e1f606ed9c55fc6bac56205581e2f79b4455485adab0604",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.0.1/QtOrder-1.0.1-win-x64-setup.exe"
+        },
+        {
+          "name": "QtOrder-1.0.1-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 142606336,
+          "sha256": "0fe92dfdcc0c561a3741ab6721de07fcceee74be4039b8ad6fcfc7d299769fe3",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.0.1/QtOrder-1.0.1-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "channel": "stable",
+      "publishedAt": "2026-06-30T18:00:00+08:00",
+      "summary": "QtOrder 第一個正式版本。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.0.0",
+      "notes": {
+        "features": [
+          "策略訊號自動下單",
+          "手動下單與委託回報查詢",
+          "部位與帳務即時查詢",
+          "軟體授權碼驗證與裝置綁定"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.0.0-win-x64-setup.exe",
+          "kind": "installer",
+          "platform": "win-x64",
+          "size": 96206848,
+          "sha256": "e94a025ee39a30e6da79ca670b10227a5aa65c687ddba93641d4f3dc7636e849",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.0.0/QtOrder-1.0.0-win-x64-setup.exe"
+        },
+        {
+          "name": "QtOrder-1.0.0-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 142475264,
+          "sha256": "fc610d26c5865c2ac7f9a7f2163b7988afbfa413bf84c7fed955cfd8fd859675",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.0.0/QtOrder-1.0.0-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.0.0-preview.2",
+      "channel": "preview",
+      "publishedAt": "2026-06-16T18:00:00+08:00",
+      "summary": "正式版前的最後一個預覽版本。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.0.0-preview.2",
+      "notes": {
+        "improvements": [
+          "帳務查詢結果加入匯出 CSV"
+        ],
+        "fixes": [
+          "修正授權碼輸入框無法貼上含空白的授權碼"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.0.0-preview.2-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 142344192,
+          "sha256": "30e224d3586abe6416fdae300e08ab47cde13f7a8820b6ffed215601b0b24e78",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.0.0-preview.2/QtOrder-1.0.0-preview.2-win-x64.zip"
+        }
+      ]
+    },
+    {
+      "version": "1.0.0-preview.1",
+      "channel": "preview",
+      "publishedAt": "2026-06-02T18:00:00+08:00",
+      "summary": "第一個預覽版本，開放測試環境試用。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.0.0-preview.1",
+      "notes": {
+        "features": [
+          "策略訊號自動下單",
+          "手動下單",
+          "軟體授權碼驗證"
+        ]
+      },
+      "assets": [
+        {
+          "name": "QtOrder-1.0.0-preview.1-win-x64.zip",
+          "kind": "portable",
+          "platform": "win-x64",
+          "size": 141819904,
+          "sha256": "29e0e09158bffc993a81fa2f2952929c67d5ddcaafdaef73ab2269c449429d14",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.0.0-preview.1/QtOrder-1.0.0-preview.1-win-x64.zip"
+        }
+      ]
+    }
+  ]
+}
