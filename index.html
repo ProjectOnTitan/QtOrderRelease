@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QtOrder 發布中心</title>
   <meta name="description" content="QtOrder 穩定版與預覽版的下載點、版本說明與更新歷程。">
+  <!-- build:robots 部署時若發布紀錄為模擬資料，建置腳本會在此插入 noindex -->
+
   <meta property="og:type" content="website">
   <meta property="og:title" content="QtOrder 發布中心">
   <meta property="og:description" content="QtOrder 穩定版與預覽版的下載點、版本說明與更新歷程。">
@@ -22,7 +24,7 @@
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
     } catch (e) {}
   </script>
-  <script src="assets/js/app.js" defer></script>
+  <script type="module" src="assets/js/app.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要內容</a>
@@ -80,8 +82,11 @@
       <div class="container">
         <p class="eyebrow">QtOrder Releases</p>
         <h1 id="download-title">下載 QtOrder</h1>
-        <p class="lead">穩定版適合正式交易環境；預覽版搶先提供即將推出的功能，供測試環境試用與回饋。</p>
-        <p class="updated" data-updated hidden></p>
+        <p class="lead">新版本會先在預覽版發布，驗證通過後晉升為穩定版。正式交易請使用穩定版；想搶先試用新功能，再選擇預覽版。</p>
+        <div class="hero-meta">
+          <p class="updated" data-updated hidden></p>
+          <p class="updated" data-minimum hidden></p>
+        </div>
 
         <div class="channel-grid" id="latest" aria-busy="true">
           <div class="channel-card channel-card--skeleton" aria-hidden="true">
@@ -135,7 +140,7 @@
         <div class="section-head">
           <div>
             <h2 id="install-title">安裝與驗證</h2>
-            <p class="section-desc">安裝前請確認系統需求，並比對下載檔案的 SHA-256，確保檔案完整且未被竄改。</p>
+            <p class="section-desc">安裝前請確認系統需求；下載後先核對 SHA-256，確認檔案完整且未被竄改，再執行安裝程式。</p>
           </div>
         </div>
 
@@ -143,21 +148,27 @@
           <div class="install-card">
             <h3>系統需求</h3>
             <ul class="req-list" id="requirements"></ul>
+            <div class="broker-reqs" id="broker-requirements"></div>
           </div>
           <div class="install-card">
-            <h3>驗證下載檔案</h3>
+            <h3>安裝步驟</h3>
             <ol class="steps">
-              <li>在下載檔案所在的資料夾開啟 PowerShell。</li>
               <li>
-                執行下列指令計算檔案的 SHA-256：
+                <strong>核對檔案</strong>：在安裝程式所在的資料夾開啟 PowerShell，執行下列指令：
                 <div class="codeblock">
-                  <code id="hash-command">Get-FileHash .\QtOrder-&lt;版本&gt;-win-x64-setup.exe -Algorithm SHA256</code>
+                  <code id="hash-command">Get-FileHash .\Setup_QtOrder_v&lt;版本&gt;.exe -Algorithm SHA256</code>
                   <button class="icon-btn" id="copy-command" type="button" aria-label="複製指令">
                     <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg>
                   </button>
                 </div>
+                把輸出的 <code>Hash</code> 與本頁該檔案的 SHA-256 比對（不分大小寫）。兩者不一致時請勿執行，並重新下載。
               </li>
-              <li>把輸出的 <code>Hash</code> 與本頁該檔案的 SHA-256 比對（不分大小寫）。兩者不一致時請勿執行，並重新下載。</li>
+              <li>
+                <strong>執行安裝程式</strong>：需要系統管理員權限。QtOrder 目前沒有數位簽章，Windows 會顯示「Windows 已保護您的電腦」；確認上一步的 SHA-256 相符後，點「其他資訊」→「仍要執行」。
+              </li>
+              <li>
+                <strong>啟用</strong>：開啟 QtOrder，在「系統設定」的「軟體授權 Key」欄位輸入營業員提供的客戶授權碼。
+              </li>
             </ol>
           </div>
         </div>

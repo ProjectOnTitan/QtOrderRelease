@@ -350,11 +350,17 @@ main:focus { outline: none; }
   font-size: 1.0625rem;
 }
 
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+  margin-top: 12px;
+}
+
 .updated {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 12px;
   color: var(--text-muted);
   font-size: 0.875rem;
 }
@@ -449,6 +455,7 @@ main:focus { outline: none; }
 .badge .icon { width: 14px; height: 14px; }
 .badge--stable { background: var(--accent-soft); color: var(--accent-text); }
 .badge--preview { background: var(--preview-soft); color: var(--preview-text); }
+.badge--withdrawn { background: var(--tag-breaking-bg); color: var(--tag-breaking); }
 
 .tag {
   display: inline-flex;
@@ -459,7 +466,7 @@ main:focus { outline: none; }
   font-weight: 700;
   letter-spacing: 0.02em;
 }
-.tag--breaking { background: var(--tag-breaking-bg); color: var(--tag-breaking); }
+.tag--upgradeNotes { background: var(--tag-breaking-bg); color: var(--tag-breaking); }
 .tag--features { background: var(--tag-feature-bg); color: var(--tag-feature); }
 .tag--improvements { background: var(--tag-improvement-bg); color: var(--tag-improvement); }
 .tag--fixes { background: var(--tag-fix-bg); color: var(--tag-fix); }
@@ -621,6 +628,12 @@ main:focus { outline: none; }
 /* 穩定版實心、預覽版空心：形狀本身就能區分，不只靠顏色 */
 .release--stable::after { border-color: var(--accent); background: var(--accent); }
 .release--preview::after { border-color: var(--preview); }
+.release--withdrawn::after { border-color: var(--tag-breaking); background: var(--bg); }
+.release--withdrawn .release__version {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
 
 .release__card {
   background: var(--surface);
@@ -683,6 +696,19 @@ main:focus { outline: none; }
 
 .release--skeleton .release__card { padding: 18px 16px; }
 
+.release__timeline { color: var(--text-muted); font-size: 0.875rem; }
+
+.callout {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-border);
+  border-radius: var(--radius);
+}
+.callout > .icon { margin-top: 2px; color: var(--tag-breaking); }
+.callout__title { color: var(--text-strong); font-weight: 700; }
+
 .notes { display: grid; gap: 16px; }
 .note-group { display: grid; gap: 8px; }
 .note-list {
@@ -741,7 +767,7 @@ main:focus { outline: none; }
   font-weight: 600;
   overflow-wrap: anywhere;
 }
-.asset__meta { color: var(--text-muted); font-size: 0.8125rem; }
+.asset__meta, .asset__hint { color: var(--text-muted); font-size: 0.8125rem; }
 .asset__download { grid-column: 1 / -1; }
 
 @media (min-width: 640px) {
@@ -792,6 +818,20 @@ main:focus { outline: none; }
 }
 .req-list li { display: flex; gap: 10px; }
 .req-list .icon { margin-top: 2px; color: var(--accent-text); }
+.req-list--compact { gap: 6px; font-size: 0.9375rem; }
+.req-list--compact .icon { margin-top: 4px; }
+
+.broker-reqs {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.broker-reqs:empty { display: none; }
+.broker-req h4 { margin-bottom: 8px; font-size: 0.9375rem; }
+
+.steps strong { color: var(--text-strong); }
 
 .steps {
   display: grid;
