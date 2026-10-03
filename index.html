@@ -142,6 +142,16 @@
             <h3>系統需求</h3>
             <ul class="req-list" id="requirements" role="list"></ul>
             <div class="broker-reqs" id="broker-requirements"></div>
+            <section class="network-req" aria-labelledby="network-title">
+              <h4 id="network-title">自動更新需要連線的網域</h4>
+              <p>公司或券商有防火牆時，請放行下列網域。連不上時 QtOrder 仍會在倒數後啟動目前的版本，只是收不到更新。</p>
+              <ul class="domain-list" role="list">
+                <li><code>projectontitan.github.io</code></li>
+                <li><code>github.com</code></li>
+                <li><code>release-assets.githubusercontent.com</code></li>
+                <li><code>objects.githubusercontent.com</code></li>
+              </ul>
+            </section>
           </div>
           <div class="install-card">
             <h3>安裝步驟</h3>
@@ -161,6 +171,11 @@
               <li>
                 <div class="steps__body">
                   <strong>執行安裝程式</strong>：需要系統管理員權限。QtOrder 目前沒有數位簽章，Windows 會顯示「Windows 已保護您的電腦」；確認上一步的 SHA-256 相符後，點「其他資訊」→「仍要執行」。
+                </div>
+              </li>
+              <li>
+                <div class="steps__body">
+                  <strong>放入訊號服務金鑰</strong>：安裝程式不含金鑰。請向券商取得金鑰檔，存放為安裝目錄下的 <code>app.local.config</code>（預設 <code>C:\QtOrder\app.local.config</code>）。沒有這個檔案時，QtOrder 仍可開啟與手動下單，但無法啟動交易監控。
                 </div>
               </li>
               <li>

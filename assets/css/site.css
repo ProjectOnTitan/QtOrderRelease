@@ -493,6 +493,19 @@ main:focus { outline: none; }
   border-top: 1px solid var(--divider);
 }
 .channel-card__summary { max-width: 30em; }
+.channel-card__notice {
+  display: flex;
+  gap: 6px;
+  max-width: 24em;
+  margin-top: 20px;
+  padding: 10px 14px;
+  background: var(--notice-bg);
+  border-radius: var(--radius-sm);
+  color: var(--preview);
+  font-size: 0.9375rem;
+  text-align: left;
+}
+.channel-card__notice .icon { margin-top: 4px; }
 .channel-card__meta {
   display: flex;
   flex-wrap: wrap;
@@ -533,6 +546,8 @@ main:focus { outline: none; }
 .badge--stable { color: var(--stable); }
 .badge--preview { color: var(--preview); }
 .badge--withdrawn { color: var(--danger); }
+/* 需重新安裝：要客戶採取行動，沿用升級須知的色調，並以圖示與文字表達，不只靠顏色 */
+.badge--installer { color: var(--preview); }
 
 /* ---------- SHA-256 ---------- */
 
@@ -754,6 +769,8 @@ main:focus { outline: none; }
 }
 .callout > .icon { margin-top: 4px; color: var(--danger); }
 .callout__title { font-weight: 600; }
+.callout--notice { background: var(--notice-bg); }
+.callout--notice > .icon, .callout--notice .callout__title { color: var(--preview); }
 
 .notes { display: grid; gap: 24px; }
 .note-group { display: grid; gap: 8px; }
@@ -890,6 +907,33 @@ main:focus { outline: none; }
 }
 .broker-reqs:empty { display: none; }
 .broker-req h4 { margin-bottom: 8px; font-size: 1.0625rem; }
+
+.network-req {
+  display: grid;
+  gap: 8px;
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--divider);
+  font-size: 0.9375rem;
+}
+.network-req h4 { font-size: 1.0625rem; }
+.network-req p { color: var(--text-secondary); }
+/* 網域要能整段複製，逐項分行、不在中間斷開 */
+.domain-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.domain-list code {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--bg);
+  overflow-wrap: anywhere;
+}
 
 /* 步驟編號用圓形數字；list-style 拿掉後以 role="list" 保留清單語意 */
 .steps {

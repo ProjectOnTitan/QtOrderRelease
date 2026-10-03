@@ -10,7 +10,7 @@ const TIME_ZONE = 'Asia/Taipei';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const CHANNELS = {
-  stable: { label: '穩定版', icon: 'i-shield-check', hint: '由預覽版驗證後晉升，建議正式交易使用。', button: 'primary' },
+  stable: { label: '穩定版', icon: 'i-shield-check', hint: '建議正式交易使用；新版本通常先在預覽版驗證，再晉升到這裡。', button: 'primary' },
   preview: { label: '預覽版', icon: 'i-flask', hint: '新版本最先在這裡發布，可能仍有未修正的問題，請勿用於正式交易。', button: 'secondary' },
 };
 
@@ -148,6 +148,10 @@ function channelBadge(channel) {
 
 const withdrawnBadge = () => el('span', { class: 'badge badge--withdrawn' }, icon('i-alert'), '已撤回');
 
+// 換了券商元件或啟動器的版本，啟動器不會套用更新套件，客戶要重新執行安裝程式（QtOrder ADR-0035）。
+const installerBadge = () => el('span', { class: 'badge badge--installer' }, icon('i-download'), '需重新安裝');
+const INSTALLER_NOTICE = '此版本需要重新執行安裝程式：已安裝的 QtOrder 不會自動更新到這一版。';
+
 const fileMeta = (asset) => [fileType(asset.name), formatSize(asset.size)].filter(Boolean).join(' · ');
 
 // 檔案類型與大小放在按鈕下方的說明文字，以 aria-describedby 連回按鈕。
@@ -251,7 +255,9 @@ function channelCard(channel, release) {
       hint,
       button && el('div', { class: 'channel-card__actions' },
         button,
-        el('p', { class: 'channel-card__file', id: `${titleId}-file` }, fileMeta(installer)))),
+        el('p', { class: 'channel-card__file', id: `${titleId}-file` }, fileMeta(installer))),
+      // 放在下載按鈕旁、分隔線之上，兩張卡片的下半部才維持相同結構、分隔線對齊
+      release.requiresInstaller && el('p', { class: 'channel-card__notice' }, icon('i-alert', 'icon icon--sm'), INSTALLER_NOTICE)),
     el('div', { class: 'channel-card__details' },
       release.summary && el('p', { class: 'channel-card__summary' }, release.summary),
       el('p', { class: 'channel-card__meta' },
@@ -295,6 +301,7 @@ function releaseItem(release) {
   el('span', { class: 'release__title' },
     el('span', { class: 'release__version' }, `v${release.version}`),
     channelBadge(release.channel),
+    release.requiresInstaller && installerBadge(),
     withdrawn && withdrawnBadge()),
   el('time', { class: 'release__date', datetime: release.publishedAt }, formatDate(release.publishedAt)),
   el('span', { class: 'release__indicator' }, icon('i-plus')));
@@ -314,11 +321,14 @@ function releaseItem(release) {
       panel));
 }
 
-// 這個版本走過哪些通道：預覽版 → 晉升為穩定版，或緊急修正直接發布為穩定版。
+// 第一個版本直接發布為穩定版（首發），之後直接發布為穩定版的才是緊急修正。
+const isInitialRelease = (release) => state.releases.every((other) => Date.parse(other.publishedAt) >= Date.parse(release.publishedAt));
+
+// 這個版本走過哪些通道：預覽版 → 晉升為穩定版，或首發、緊急修正直接發布為穩定版。
 function releaseTimeline(release) {
   const steps = [];
   if (release.channel === 'stable' && !release.promotedAt) {
-    steps.push(`${formatDate(release.publishedAt)} 直接發布為穩定版（緊急修正）`);
+    steps.push(`${formatDate(release.publishedAt)} ${isInitialRelease(release) ? '首次發布為穩定版' : '直接發布為穩定版（緊急修正）'}`);
   } else {
     steps.push(`${formatDate(release.publishedAt)} 發布於預覽版`);
     if (release.promotedAt) steps.push(`${formatDate(release.promotedAt)} 晉升為穩定版`);
@@ -350,24 +360,30 @@ function releaseBody(release) {
   const releaseUrl = safeUrl(release.releaseUrl);
   return [
     releaseTimeline(release),
+    release.requiresInstaller && el('div', { class: 'callout callout--notice' },
+      icon('i-alert'),
+      el('div', {},
+        el('p', { class: 'callout__title' }, '需要重新執行安裝程式'),
+        el('p', {}, '這個版本更新了券商元件或啟動器，啟動器不會自動套用更新套件。請下載安裝程式並執行，安裝時會保留既有設定。'))),
     notes,
     el('div', {},
       el('h4', { class: 'panel-subtitle' }, '下載檔案'),
-      el('ul', { class: 'asset-list', role: 'list' }, release.assets.map(assetItem))),
+      el('ul', { class: 'asset-list', role: 'list' }, release.assets.map((asset) => assetItem(asset, release)))),
     releaseUrl && el('p', { class: 'release__links' },
       el('a', { class: 'text-link', href: releaseUrl }, '在 GitHub 檢視此版本', icon('i-external', 'icon icon--sm'))),
   ];
 }
 
-function assetItem(asset) {
+function assetItem(asset, release) {
   const kind = ASSET_KINDS[asset.kind] ?? { label: '檔案', icon: 'i-file' };
   const href = safeUrl(asset.url);
+  const hint = asset.kind === 'update' && release.requiresInstaller ? '此版本必須用安裝程式安裝，啟動器不會套用這個更新套件。' : kind.hint;
   return el('li', { class: 'asset' },
     el('span', { class: 'asset__icon' }, icon(kind.icon)),
     el('div', { class: 'asset__body' },
       el('p', { class: 'asset__name' }, asset.name),
       el('p', { class: 'asset__meta' }, [kind.label, formatSize(asset.size)].filter(Boolean).join(' · ')),
-      kind.hint && el('p', { class: 'asset__hint' }, kind.hint),
+      hint && el('p', { class: 'asset__hint' }, hint),
       hashRow(asset, 'full')),
     href && el('a', { class: 'btn btn--secondary asset__download', href },
       icon('i-download'), '下載', el('span', { class: 'visually-hidden' }, ` ${asset.name}`)));
