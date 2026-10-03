@@ -99,6 +99,15 @@
           "format": "uri",
           "description": "對應的 GitHub Release 頁面。"
         },
+        "sourceCommit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$",
+          "description": "建置來源的 QtOrder commit。晉升時比對分支 HEAD，判斷是否需要重新安裝時當作比對基準（QtOrder ADR-0033）。"
+        },
+        "requiresInstaller": {
+          "type": "boolean",
+          "description": "這個版本更新了券商 COM 元件或啟動器，必須用安裝程式安裝，啟動器不會套用更新套件（QtOrder ADR-0035）。"
+        },
         "notes": { "$ref": "#/$defs/notes" },
         "assets": {
           "type": "array",

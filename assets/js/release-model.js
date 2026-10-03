@@ -41,14 +41,30 @@ export function latestPreview(releases) {
   return !stable || compareVersions(preview.version, stable.version) > 0 ? preview : null;
 }
 
-/* 更新清單沿用啟動器既有的欄位（stable／preview／min_version），另加更新套件的 SHA-256 與大小。
+/* 要套用某個版本的更新套件，本機至少要執行過哪個版本的安裝程式（QtOrder ADR-0035）：
+ * 版本號不超過它、標示需要重新安裝的最高版本。已撤回的也算，之後的版本沿用了它的元件變動。 */
+export function minInstallerVersion(releases, target) {
+  const flagged = releases.filter((release) => release.requiresInstaller && compareVersions(release.version, target.version) <= 0);
+  return highest(flagged)?.version ?? null;
+}
+
+/* 更新清單沿用啟動器既有的欄位（stable／preview／min_version），另加更新套件的 SHA-256 與大小，
+ * 以及需要重新安裝時的 min_installer_version。
  * 預覽版沒有更新的版本時指向穩定版，避免選預覽版的客戶被降級。 */
 export function buildUpdateManifest(data) {
   const stable = latestStable(data.releases);
   if (!stable) return null;
   const entry = (release) => {
     const update = findAsset(release, 'update');
-    return { version: release.version, url: update.url, sha256: update.sha256, size: update.size, description: release.summary ?? '' };
+    const minInstaller = minInstallerVersion(data.releases, release);
+    return {
+      version: release.version,
+      url: update.url,
+      sha256: update.sha256,
+      size: update.size,
+      description: release.summary ?? '',
+      ...(minInstaller && { min_installer_version: minInstaller }),
+    };
   };
   return {
     stable: entry(stable),

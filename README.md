@@ -4,7 +4,7 @@ QtOrder 的發布中心：以 GitHub Pages 提供各版本的版本說明、下�
 用語（預覽版、穩定版、晉升、撤回、最低支援版本…）以 [CONTEXT.md](CONTEXT.md) 為準；為什麼這樣設計見 [docs/adr/](docs/adr/)。
 
 > 目前 `data/releases.json` 是模擬資料（`"mock": true`）：頁面頂端顯示提示，部署時自動加上 `noindex`。
-> 依 [ADR-0002](docs/adr/0002-github-hosted-releases.md)，安裝程式與更新套件移除 GCP 金鑰之前，不放真實的下載連結。
+> 第一個正式版本（首發）發布時，`scripts/release-record.js` 會清掉模擬資料。QtOrder 的打包流程已不再把 GCP 金鑰放進套件（QtOrder ADR-0034），並在發布前掃描機密。
 
 ## 結構
 
@@ -16,7 +16,8 @@ assets/css/site.css           樣式；版型參考 apple.com，只有淺色配�
 data/releases.json            發布紀錄，唯一的資料來源
 data/releases.schema.json     發布紀錄的 JSON Schema
 scripts/build-site.js         驗證發布紀錄，輸出網站與更新清單（_site/update.json）
-tests/                        發布規則的測試
+scripts/release-record.js     QtOrder 的發布 workflow 呼叫：判斷建置或晉升、寫入新版本、晉升
+tests/                        發布規則與發布紀錄腳本的測試
 .github/workflows/pages.yml   PR 時驗證；合併到 main 後建置並部署 Pages
 ```
 
@@ -43,17 +44,20 @@ GitHub Pages 約有 10 分鐘快取，發布後客戶最多晚 10 分鐘看到�
 
 ## 發布流程
 
-所有變更都以 PR 修改 `data/releases.json`，CI 驗證通過、人工審核後合併才生效。
+發布、晉升與緊急修正由 QtOrder 的發布 workflow 在 `release/preview`、`release/stable` 手動觸發，以 GitHub App 直接 commit 到本 repo 的 `main`，Pages 隨之部署（[ADR-0003](docs/adr/0003-publish-from-qtorder-workflow.md)）。
+版本說明寫在 QtOrder 的 `release-notes/<版本>.md`，在 QtOrder 的 PR 審核；操作步驟見 QtOrder 的 `docs/04-release.md`。
 
-| 動作 | 修改內容 |
-| --- | --- |
-| 發布新版本 | QtOrder 的 CI 把安裝程式與更新套件上傳到本 repo 的 GitHub Release（tag `v<版本>`），再開 PR 新增一筆 `channel: "preview"` 的版本，附上從 commit 產生的版本說明草稿；審核時改寫成客戶看得懂的文字 |
-| 晉升 | 把該版本的 `channel` 改為 `"stable"`，填入 `promotedAt` |
-| 緊急修正 | 直接新增一筆 `channel: "stable"`、沒有 `promotedAt` 的版本；下一個預覽版必須包含同樣的修正 |
-| 撤回 | 填入 `withdrawn: { at, reason }`，並刪除該 GitHub Release 上的檔案。撤回不會強制已安裝的客戶更新；要強制，另外提高 `minimumVersion` |
-| 調整最低支援版本 | 修改 `minimumVersion`，必須是一個未撤回的穩定版 |
+| 動作 | 怎麼做 | 發布紀錄的變化 |
+| --- | --- | --- |
+| 發布預覽版 | 在 QtOrder 的 `release/preview` 觸發 | workflow 建立 GitHub Release（tag `v<版本>`、標為 prerelease）並上傳兩個下載檔案，新增一筆 `channel: "preview"` 的版本 |
+| 晉升 | 把同一個 commit fast-forward 到 `release/stable` 後觸發 | 該版本的 `channel` 改為 `"stable"`、填入 `promotedAt`；下載檔案不變，GitHub Release 改為 latest |
+| 首發 | 第一個正式版本在 `release/stable` 觸發 | 清掉模擬資料，新增一筆 `channel: "stable"` 的版本，`minimumVersion` 設為這個版本 |
+| 緊急修正 | 在 `release/stable` 以新的版本號觸發 | 新增一筆 `channel: "stable"`、沒有 `promotedAt` 的版本；下一個預覽版必須包含同樣的修正 |
+| 撤回 | 手動發 PR | 填入 `withdrawn: { at, reason }`，並刪除該 GitHub Release 上的檔案。撤回不會強制已安裝的客戶更新；要強制，另外提高 `minimumVersion` |
+| 調整最低支援版本 | 手動發 PR | 修改 `minimumVersion`，必須是一個未撤回的穩定版 |
 
 每次修改都要更新 `generatedAt`。CI 會擋下這些錯誤：版本號帶預覽標記或重複、穩定版或預覽版的版本號沒有隨時間遞增、缺少安裝程式或更新套件、最低支援版本不是未撤回的穩定版。
+`scripts/release-record.js` 寫入前也跑同一套驗證；版本號不對時，QtOrder 的 workflow 在建置前就會失敗。
 
 ## 發布紀錄重點
 
@@ -67,6 +71,8 @@ GitHub Pages 約有 10 分鐘快取，發布後客戶最多晚 10 分鐘看到�
 | `releases[].channel` | `preview` 或 `stable`，晉升時改變 |
 | `releases[].publishedAt`、`promotedAt` | 第一次發布、晉升為穩定版的時間 |
 | `releases[].withdrawn` | 撤回時間與原因 |
+| `releases[].sourceCommit` | 建置來源的 QtOrder commit；晉升時比對 `release/stable` 的 HEAD |
+| `releases[].requiresInstaller` | 需重新安裝：這個版本更新了券商元件或啟動器，啟動器不會套用更新套件 |
 | `releases[].summary` | 一句話摘要，也是啟動器更新提示的內容 |
 | `releases[].notes` | 版本說明：`upgradeNotes`（升級須知）、`features`、`improvements`、`fixes`、`knownIssues` |
 | `releases[].assets` | `installer`（安裝程式）與 `update`（更新套件）各一個，含 `size` 與 `sha256` |
@@ -80,7 +86,9 @@ GitHub Pages 約有 10 分鐘快取，發布後客戶最多晚 10 分鐘看到�
 ```json
 {
   "stable":  { "version": "1.7.1", "url": "…/QtOrder_v1.7.1.zip", "sha256": "…", "size": 57737216, "description": "…" },
-  "preview": { "version": "1.8.0", "url": "…/QtOrder_v1.8.0.zip", "sha256": "…", "size": 58195968, "description": "…" },
+  "preview": { "version": "1.8.0", "url": "…/QtOrder_v1.8.0.zip", "sha256": "…", "size": 58195968, "description": "…", "min_installer_version": "1.8.0" },
   "min_version": "1.6.2"
 }
 ```
+
+`min_installer_version`：不超過該通道版本、標示需重新安裝的最高版本（已撤回的也算）。客戶電腦上最後一次執行的安裝程式版本較低時，啟動器不套用更新套件，改引導客戶下載安裝程式。沒有這種版本時省略。
