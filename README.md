@@ -12,7 +12,7 @@ QtOrder 的發布中心：以 GitHub Pages 提供各版本的版本說明、下�
 index.html                    頁面骨架（純靜態）
 assets/js/app.js              讀取發布紀錄並渲染頁面
 assets/js/release-model.js    發布規則：最新版本、更新清單、跨欄位檢查；頁面與建置腳本共用
-assets/css/site.css           樣式；色彩集中在 :root 的語意 token，支援深淺色
+assets/css/site.css           樣式；版型參考 apple.com，只有淺色配色，色彩集中在 :root 的語意 token（已標註 WCAG AA 對比值）
 data/releases.json            發布紀錄，唯一的資料來源
 data/releases.schema.json     發布紀錄的 JSON Schema
 scripts/build-site.js         驗證發布紀錄，輸出網站與更新清單（_site/update.json）

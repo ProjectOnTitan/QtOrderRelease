@@ -7,12 +7,11 @@ import { findAsset, isWithdrawn, latestPreview, latestStable, stableSince } from
 const DATA_URL = 'data/releases.json';
 const PAGE_SIZE = 6;
 const TIME_ZONE = 'Asia/Taipei';
-const THEME_KEY = 'qtorder-theme';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const CHANNELS = {
   stable: { label: '穩定版', icon: 'i-shield-check', hint: '由預覽版驗證後晉升，建議正式交易使用。', button: 'primary' },
-  preview: { label: '預覽版', icon: 'i-flask', hint: '新版本最先在這裡發布，可能仍有未修正的問題，請勿用於正式交易。', button: 'neutral' },
+  preview: { label: '預覽版', icon: 'i-flask', hint: '新版本最先在這裡發布，可能仍有未修正的問題，請勿用於正式交易。', button: 'secondary' },
 };
 
 const NOTE_TYPES = [
@@ -29,12 +28,6 @@ const ASSET_KINDS = {
   update: { label: '更新套件', icon: 'i-package', hint: '供啟動器自動更新使用，無法單獨安裝；第一次安裝請用安裝程式。' },
 };
 const ASSET_ORDER = Object.keys(ASSET_KINDS);
-
-const THEMES = [
-  { key: 'system', label: '跟隨系統', icon: 'i-monitor' },
-  { key: 'light', label: '淺色', icon: 'i-sun' },
-  { key: 'dark', label: '深色', icon: 'i-moon' },
-];
 
 const dateFmt = new Intl.DateTimeFormat('zh-TW', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
 const dateTimeFmt = new Intl.DateTimeFormat('zh-TW', {
@@ -155,14 +148,14 @@ function channelBadge(channel) {
 
 const withdrawnBadge = () => el('span', { class: 'badge badge--withdrawn' }, icon('i-alert'), '已撤回');
 
-function downloadButton(asset, variant) {
+const fileMeta = (asset) => [fileType(asset.name), formatSize(asset.size)].filter(Boolean).join(' · ');
+
+// 檔案類型與大小放在按鈕下方的說明文字，以 aria-describedby 連回按鈕。
+function downloadButton(asset, variant, describedBy) {
   const href = safeUrl(asset.url);
   if (!href) return null;
-  const meta = [fileType(asset.name), formatSize(asset.size)].filter(Boolean).join(' · ');
-  return el('a', { class: `btn btn--${variant}`, href },
-    icon('i-download'),
-    el('span', { class: 'btn__label' }, `下載${ASSET_KINDS[asset.kind]?.label ?? '檔案'}`),
-    meta && el('span', { class: 'btn__meta' }, meta));
+  return el('a', { class: `btn btn--${variant} btn--lg`, href, 'aria-describedby': describedBy },
+    `下載${ASSET_KINDS[asset.kind]?.label ?? '檔案'}`);
 }
 
 function copyButton(value, what) {
@@ -230,37 +223,43 @@ function emptyCardText(channel) {
   return `目前沒有${CHANNELS[channel].label}。`;
 }
 
+// 卡片上半部回答「選哪個通道、按哪裡下載」，下半部才是這個版本的細節。
 function channelCard(channel, release) {
   const meta = CHANNELS[channel];
   const titleId = `latest-${channel}`;
-  const head = el('div', { class: 'channel-card__head' },
-    channelBadge(channel),
-    el('p', { class: 'channel-card__hint' }, meta.hint));
+  const glyph = el('span', { class: 'channel-card__glyph' }, icon(meta.icon));
+  const label = el('p', { class: 'channel-card__label' }, meta.label);
+  const hint = el('p', { class: 'channel-card__hint' }, meta.hint);
 
   if (!release) {
     return el('article', { class: `channel-card channel-card--${channel}`, 'aria-label': `最新${meta.label}` },
-      head, el('p', { class: 'empty-state' }, emptyCardText(channel)));
+      el('div', { class: 'channel-card__main' }, glyph, label, hint, el('p', { class: 'empty-state' }, emptyCardText(channel))));
   }
 
   // 穩定版的日期是成為穩定版的那天，預覽版則是發布當天。
   const since = channel === 'stable' ? stableSince(release) : release.publishedAt;
   const sinceLabel = channel === 'stable' && release.promotedAt ? '晉升為穩定版' : '發布';
   const installer = findAsset(release, 'installer');
+  const button = installer && downloadButton(installer, meta.button, `${titleId}-file`);
 
   return el('article', { class: `channel-card channel-card--${channel}`, 'aria-labelledby': titleId },
-    head,
-    el('div', {},
+    el('div', { class: 'channel-card__main' },
+      glyph,
+      label,
       el('h2', { class: 'channel-card__version', id: titleId },
         el('span', { class: 'visually-hidden' }, `最新${meta.label} `), `v${release.version}`),
+      hint,
+      button && el('div', { class: 'channel-card__actions' },
+        button,
+        el('p', { class: 'channel-card__file', id: `${titleId}-file` }, fileMeta(installer)))),
+    el('div', { class: 'channel-card__details' },
+      release.summary && el('p', { class: 'channel-card__summary' }, release.summary),
       el('p', { class: 'channel-card__meta' },
         el('time', { datetime: since }, `${formatDate(since)} ${sinceLabel}`),
-        el('span', {}, formatRelative(since)))),
-    release.summary && el('p', {}, release.summary),
-    installer && el('div', { class: 'channel-card__actions' }, downloadButton(installer, meta.button)),
-    el('div', { class: 'channel-card__footer' },
-      installer && hashRow(installer, 'compact'),
+        el('span', {}, formatRelative(since))),
       el('a', { class: 'text-link', href: `#${releaseId(release)}` },
-        `查看 v${release.version} 版本說明`, icon('i-arrow-right', 'icon icon--sm icon--move'))));
+        `查看 v${release.version} 版本說明`, icon('i-chevron-right', 'icon icon--sm icon--move')),
+      installer && hashRow(installer, 'compact')));
 }
 
 /* ---------- 版本歷程 ---------- */
@@ -293,11 +292,12 @@ function releaseItem(release) {
   const toggle = el('button', {
     class: 'release__toggle', type: 'button', id: `${id}-toggle`, 'aria-expanded': String(open), 'aria-controls': panel.id,
   },
-  el('span', { class: 'release__version' }, `v${release.version}`),
-  channelBadge(release.channel),
-  withdrawn && withdrawnBadge(),
+  el('span', { class: 'release__title' },
+    el('span', { class: 'release__version' }, `v${release.version}`),
+    channelBadge(release.channel),
+    withdrawn && withdrawnBadge()),
   el('time', { class: 'release__date', datetime: release.publishedAt }, formatDate(release.publishedAt)),
-  icon('i-chevron-down', 'icon release__chevron'));
+  el('span', { class: 'release__indicator' }, icon('i-plus')));
 
   toggle.addEventListener('click', () => {
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
@@ -330,8 +330,8 @@ function releaseTimeline(release) {
 function releaseBody(release) {
   const groups = NOTE_TYPES.filter(({ key }) => Array.isArray(release.notes?.[key]) && release.notes[key].length);
   const notes = groups.length
-    ? el('div', { class: 'notes' }, groups.map(({ key, label }) => el('section', { class: 'note-group' },
-      el('h4', { class: `tag tag--${key}` }, label),
+    ? el('div', { class: 'notes' }, groups.map(({ key, label }) => el('section', { class: `note-group note-group--${key}` },
+      el('h4', { class: 'note-group__title' }, key === 'upgradeNotes' && icon('i-alert', 'icon icon--sm'), label),
       el('ul', { class: 'note-list' }, release.notes[key].map((item) => el('li', {}, richText(item)))))))
     : el('p', { class: 'section-desc' }, '此版本沒有提供版本說明。');
 
@@ -353,7 +353,7 @@ function releaseBody(release) {
     notes,
     el('div', {},
       el('h4', { class: 'panel-subtitle' }, '下載檔案'),
-      el('ul', { class: 'asset-list' }, release.assets.map(assetItem))),
+      el('ul', { class: 'asset-list', role: 'list' }, release.assets.map(assetItem))),
     releaseUrl && el('p', { class: 'release__links' },
       el('a', { class: 'text-link', href: releaseUrl }, '在 GitHub 檢視此版本', icon('i-external', 'icon icon--sm'))),
   ];
@@ -369,7 +369,7 @@ function assetItem(asset) {
       el('p', { class: 'asset__meta' }, [kind.label, formatSize(asset.size)].filter(Boolean).join(' · ')),
       kind.hint && el('p', { class: 'asset__hint' }, kind.hint),
       hashRow(asset, 'full')),
-    href && el('a', { class: 'btn btn--ghost asset__download', href },
+    href && el('a', { class: 'btn btn--secondary asset__download', href },
       icon('i-download'), '下載', el('span', { class: 'visually-hidden' }, ` ${asset.name}`)));
 }
 
@@ -457,7 +457,7 @@ function renderMeta(data) {
 
 function renderError(error) {
   console.error('無法載入版本資料', error);
-  const retry = el('button', { class: 'btn btn--neutral', type: 'button', onclick: () => load() }, icon('i-refresh'), '重新載入');
+  const retry = el('button', { class: 'btn btn--primary', type: 'button', onclick: () => load() }, icon('i-refresh'), '重新載入');
   $('#latest').replaceChildren(el('div', { class: 'error-state', role: 'alert' },
     icon('i-alert'),
     el('div', { class: 'error-state__body' },
@@ -469,33 +469,34 @@ function renderError(error) {
   $('#release-list').removeAttribute('aria-busy');
 }
 
-/* ---------- 主題 ---------- */
+/* ---------- 頁首選單 ---------- */
 
-function initTheme() {
-  const button = $('#theme-toggle');
-  let current = document.documentElement.dataset.theme ?? 'system';
-
-  const apply = (key, { save }) => {
-    const theme = THEMES.find((t) => t.key === key) ?? THEMES[0];
-    current = theme.key;
-    if (theme.key === 'system') delete document.documentElement.dataset.theme;
-    else document.documentElement.dataset.theme = theme.key;
-    setIcon(button, theme.icon);
-    const label = `切換主題（目前：${theme.label}）`;
-    button.setAttribute('aria-label', label);
-    button.title = label;
-    if (!save) return;
-    try {
-      if (theme.key === 'system') localStorage.removeItem(THEME_KEY);
-      else localStorage.setItem(THEME_KEY, theme.key);
-    } catch { /* 無痕模式等情況無法保存，僅影響下次造訪 */ }
+// 窄螢幕時頁首連結收進下拉選單（寬螢幕由 CSS 直接顯示，按鈕隱藏）。
+// 點選連結、按 Esc、點選頁首以外或焦點離開頁首時收合，避免選單蓋住其他內容的焦點。
+function initLocalNav() {
+  const nav = $('.localnav__nav');
+  const toggle = $('#localnav-toggle');
+  const menu = $('#localnav-menu');
+  const isOpen = () => toggle.getAttribute('aria-expanded') === 'true';
+  const setOpen = (open) => {
+    toggle.setAttribute('aria-expanded', String(open));
+    menu.classList.toggle('is-open', open);
   };
 
-  apply(current, { save: false });
-  button.addEventListener('click', () => {
-    const next = THEMES[(THEMES.findIndex((t) => t.key === current) + 1) % THEMES.length];
-    apply(next.key, { save: true });
-    announce(`主題：${next.label}`);
+  toggle.addEventListener('click', () => setOpen(!isOpen()));
+  menu.addEventListener('click', (event) => {
+    if (event.target.closest('a')) setOpen(false);
+  });
+  nav.addEventListener('focusout', (event) => {
+    if (!nav.contains(event.relatedTarget)) setOpen(false);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !isOpen()) return;
+    setOpen(false);
+    toggle.focus();
+  });
+  document.addEventListener('click', (event) => {
+    if (isOpen() && !nav.contains(event.target)) setOpen(false);
   });
 }
 
@@ -522,7 +523,7 @@ async function load() {
 }
 
 function init() {
-  initTheme();
+  initLocalNav();
 
   for (const button of document.querySelectorAll('[data-filter]')) {
     button.addEventListener('click', () => {
