@@ -23,7 +23,9 @@ export const isWithdrawn = (release) => Boolean(release.withdrawn);
 // 版本成為穩定版的時間：晉升的版本取晉升時間，緊急修正取發布時間。
 export const stableSince = (release) => release.promotedAt ?? release.publishedAt;
 
-export const findAsset = (release, kind) => release.assets.find((asset) => asset.kind === kind) ?? null;
+export const BROKERS = ['taishin', 'zf-mega', 'capital'];
+export const BROKER_NAMES = { taishin: '台新證券', 'zf-mega': '兆豐證券', capital: '群益證券' };
+export const findAsset = (release, kind, broker) => release.assets.find((asset) => asset.kind === kind && asset.broker === broker) ?? null;
 
 function highest(releases) {
   return releases.reduce((best, release) => (!best || compareVersions(release.version, best.version) > 0 ? release : best), null);
@@ -54,10 +56,11 @@ export function minInstallerVersion(releases, target) {
 export function buildUpdateManifest(data) {
   const stable = latestStable(data.releases);
   if (!stable) return null;
-  const entry = (release) => {
-    const update = findAsset(release, 'update');
+  const entry = (release, broker) => {
+    const update = findAsset(release, 'update', broker);
     const minInstaller = minInstallerVersion(data.releases, release);
     return {
+      broker,
       version: release.version,
       url: update.url,
       sha256: update.sha256,
@@ -67,9 +70,12 @@ export function buildUpdateManifest(data) {
     };
   };
   return {
-    stable: entry(stable),
-    preview: entry(latestPreview(data.releases) ?? stable),
-    min_version: data.minimumVersion,
+    schemaVersion: 2,
+    brokers: Object.fromEntries(BROKERS.map((broker) => [broker, {
+      stable: entry(stable, broker),
+      preview: entry(latestPreview(data.releases) ?? stable, broker),
+      min_version: data.minimumVersion,
+    }])),
   };
 }
 
@@ -88,10 +94,14 @@ export function checkReleaseRules(data) {
     if (release.promotedAt && Date.parse(release.promotedAt) < Date.parse(release.publishedAt)) errors.push(`${label}：晉升時間早於發布時間`);
     if (release.withdrawn && Date.parse(release.withdrawn.at) < Date.parse(release.publishedAt)) errors.push(`${label}：撤回時間早於發布時間`);
 
-    for (const kind of ['installer', 'update']) {
-      const count = release.assets.filter((asset) => asset.kind === kind).length;
-      if (count !== 1) errors.push(`${label}：必須剛好有一個 ${kind} 下載檔案，目前有 ${count} 個`);
+    for (const broker of BROKERS) {
+      for (const kind of ['installer', 'update']) {
+        const count = release.assets.filter((asset) => asset.kind === kind && asset.broker === broker).length;
+        if (count !== 1) errors.push(`${label}：${broker} 必須剛好有一個 ${kind} 下載檔案，目前有 ${count} 個`);
+      }
     }
+    if (release.assets.some((asset) => !BROKERS.includes(asset.broker))) errors.push(`${label}：不認得的券商識別`);
+    if (new Set(release.assets.map((asset) => asset.name)).size !== release.assets.length) errors.push(`${label}：下載檔名重複`);
   }
 
   // 依成為穩定版／預覽版的時間排序後，版本號必須遞增，否則啟動器會被引導降級。

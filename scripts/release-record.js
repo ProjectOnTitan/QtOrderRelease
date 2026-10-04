@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { checkReleaseRules, compareVersions, isVersion, isWithdrawn, latestStable } from '../assets/js/release-model.js';
+import { BROKERS, checkReleaseRules, compareVersions, isVersion, isWithdrawn, latestStable } from '../assets/js/release-model.js';
 import { validateReleaseData } from './validate.js';
 
 const NOTE_HEADINGS = {
@@ -104,8 +104,10 @@ function previousOf(releases, version) {
 }
 
 function placeholderAssets(version) {
-  const asset = (kind, name) => ({ name, kind, size: 1, sha256: '0'.repeat(64), url: `https://example.invalid/${name}` });
-  return [asset('installer', `Setup_QtOrder_v${version}.exe`), asset('update', `QtOrder_v${version}.zip`)];
+  return BROKERS.flatMap((broker) => ['installer', 'update'].map((kind) => ({
+    broker, kind, name: kind === 'installer' ? `Setup_QtOrder_${broker}_v${version}.exe` : `QtOrder_${broker}_v${version}.zip`,
+    size: 1, sha256: '0'.repeat(64), url: 'https://example.invalid/placeholder',
+  })));
 }
 
 /* 依分支（通道）、版本號與 commit 決定這次觸發要建置發布還是只晉升（QtOrder ADR-0033）。
@@ -154,6 +156,7 @@ function addRelease(base, { version, channel, sourceCommit, at, summary, require
   };
   return {
     ...base,
+    schemaVersion: 2,
     generatedAt: at,
     // 第一個穩定版同時是最低支援版本：最低支援版本必須是未撤回的穩定版
     ...(firstStable && { minimumVersion: version }),
@@ -170,11 +173,16 @@ export function publishRelease(data, { version, channel, sourceCommit, notesMark
   if (!/^https:\/\//.test(baseUrl ?? '')) fail(`下載網址前綴必須是 https：${baseUrl}`);
 
   const { summary, requiresInstaller, notes } = parseReleaseNotes(notesMarkdown);
-  const assets = ['installer', 'update'].map((kind) => {
-    const asset = (assetsJson.assets ?? []).find((item) => item.kind === kind);
-    if (!asset) fail(`assets.json 缺少 ${kind} 檔案`);
-    return { name: asset.name, kind, size: asset.size, sha256: asset.sha256, url: `${baseUrl.replace(/\/$/, '')}/${encodeURIComponent(asset.name)}` };
-  });
+  if (!Array.isArray(assetsJson.assets) || assetsJson.assets.length !== 6) fail('assets.json 必須包含三家券商共六個檔案');
+  const assets = BROKERS.flatMap((broker) => ['installer', 'update'].map((kind) => {
+    const matches = assetsJson.assets.filter((asset) => asset.broker === broker && asset.kind === kind);
+    if (matches.length !== 1) fail(`assets.json 的 ${broker}/${kind} 必須恰好一個`);
+    const asset = matches[0];
+    if (!Number.isSafeInteger(asset.size) || asset.size <= 0 || !/^[0-9a-f]{64}$/.test(asset.sha256)) fail('assets.json 缺少有效大小或雜湊');
+    const expectedName = kind === 'installer' ? `Setup_QtOrder_${broker}_v${version}.exe` : `QtOrder_${broker}_v${version}.zip`;
+    if (asset.name !== expectedName) fail('下載檔名與券商、版本或檔案種類不符');
+    return { name: asset.name, broker, kind, size: asset.size, sha256: asset.sha256, url: `${baseUrl.replace(/\/$/, '')}/${encodeURIComponent(asset.name)}` };
+  }));
   return addRelease(base, { version, channel, sourceCommit, at, summary, requiresInstaller, notes, assets });
 }
 

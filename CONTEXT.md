@@ -92,3 +92,9 @@ _Avoid_: 版本資料庫、release list
 **更新清單**:
 啟動器用來判斷是否有新版、是否必須更新的精簡清單，由發布紀錄產生。
 _Avoid_: manifest、版本檔
+
+## 券商交付
+
+**券商識別**：安裝、下載檔案與更新清單的正式識別，僅有 `taishin`、`zf-mega`、`capital`。各版本共用版本號與通道，下載檔案各有安裝程式與更新套件；啟動器只能選用自身券商的檔案。`mega` 僅供下單機接受舊 profile，不作發布識別。
+
+模型決策見 [ADR-0004](docs/adr/0004-single-broker-release-assets.md)。

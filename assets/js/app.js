@@ -2,7 +2,7 @@
  * 讀取 data/releases.json（發布紀錄）後渲染「最新版本」「版本歷程」「安裝與驗證」三區。
  * 哪個版本算最新、預覽版何時不推薦，一律交給 release-model.js，與更新清單共用同一套規則。
  * 資料一律以 textContent 寫入 DOM，連結只接受 http(s)，即使 JSON 被竄改也無法注入腳本。 */
-import { findAsset, isWithdrawn, latestPreview, latestStable, stableSince } from './release-model.js';
+import { BROKERS, BROKER_NAMES, findAsset, isWithdrawn, latestPreview, latestStable, stableSince } from './release-model.js';
 
 const DATA_URL = 'data/releases.json';
 const PAGE_SIZE = 6;
@@ -159,7 +159,7 @@ function downloadButton(asset, variant, describedBy) {
   const href = safeUrl(asset.url);
   if (!href) return null;
   return el('a', { class: `btn btn--${variant} btn--lg`, href, 'aria-describedby': describedBy },
-    `下載${ASSET_KINDS[asset.kind]?.label ?? '檔案'}`);
+    `下載${BROKER_NAMES[asset.broker]}${ASSET_KINDS[asset.kind]?.label ?? '檔案'}`);
 }
 
 function copyButton(value, what) {
@@ -243,8 +243,8 @@ function channelCard(channel, release) {
   // 穩定版的日期是成為穩定版的那天，預覽版則是發布當天。
   const since = channel === 'stable' ? stableSince(release) : release.publishedAt;
   const sinceLabel = channel === 'stable' && release.promotedAt ? '晉升為穩定版' : '發布';
-  const installer = findAsset(release, 'installer');
-  const button = installer && downloadButton(installer, meta.button, `${titleId}-file`);
+  const installers = BROKERS.map(broker => findAsset(release, 'installer', broker)).filter(Boolean);
+
 
   return el('article', { class: `channel-card channel-card--${channel}`, 'aria-labelledby': titleId },
     el('div', { class: 'channel-card__main' },
@@ -253,9 +253,9 @@ function channelCard(channel, release) {
       el('h2', { class: 'channel-card__version', id: titleId },
         el('span', { class: 'visually-hidden' }, `最新${meta.label} `), `v${release.version}`),
       hint,
-      button && el('div', { class: 'channel-card__actions' },
-        button,
-        el('p', { class: 'channel-card__file', id: `${titleId}-file` }, fileMeta(installer))),
+      ...installers.map(asset => el('div', { class: 'channel-card__actions' },
+        downloadButton(asset, meta.button, `${titleId}-${asset.broker}-file`),
+        el('p', { class: 'channel-card__file', id: `${titleId}-${asset.broker}-file` }, fileMeta(asset)))),
       // 放在下載按鈕旁、分隔線之上，兩張卡片的下半部才維持相同結構、分隔線對齊
       release.requiresInstaller && el('p', { class: 'channel-card__notice' }, icon('i-alert', 'icon icon--sm'), INSTALLER_NOTICE)),
     el('div', { class: 'channel-card__details' },
@@ -265,7 +265,8 @@ function channelCard(channel, release) {
         el('span', {}, formatRelative(since))),
       el('a', { class: 'text-link', href: `#${releaseId(release)}` },
         `查看 v${release.version} 版本說明`, icon('i-chevron-right', 'icon icon--sm icon--move')),
-      installer && hashRow(installer, 'compact')));
+      ...installers.map(asset => el('div', { class: 'channel-card__broker-hash' },
+        el('p', { class: 'channel-card__meta' }, BROKER_NAMES[asset.broker]), hashRow(asset, 'compact')))));
 }
 
 /* ---------- 版本歷程 ---------- */
@@ -382,7 +383,7 @@ function assetItem(asset, release) {
     el('span', { class: 'asset__icon' }, icon(kind.icon)),
     el('div', { class: 'asset__body' },
       el('p', { class: 'asset__name' }, asset.name),
-      el('p', { class: 'asset__meta' }, [kind.label, formatSize(asset.size)].filter(Boolean).join(' · ')),
+      el('p', { class: 'asset__meta' }, [BROKER_NAMES[asset.broker], kind.label, formatSize(asset.size)].filter(Boolean).join(' · ')),
       hint && el('p', { class: 'asset__hint' }, hint),
       hashRow(asset, 'full')),
     href && el('a', { class: 'btn btn--secondary asset__download', href },
@@ -444,7 +445,7 @@ function renderInstall(product) {
     el('ul', { class: 'req-list req-list--compact' }, items.map((item) => el('li', {}, icon('i-circle-check', 'icon icon--sm'), el('span', {}, richText(item))))))));
 
   const stable = latestStable(state.releases);
-  const installer = stable && findAsset(stable, 'installer');
+  const installer = stable && findAsset(stable, 'installer', 'taishin');
   if (installer) $('#hash-command').textContent = `Get-FileHash .\\${installer.name} -Algorithm SHA256`;
 }
 
