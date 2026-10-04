@@ -4,11 +4,20 @@
   "title": "QtOrder 發布紀錄",
   "description": "發布中心與更新清單唯一的資料來源，用語見 CONTEXT.md。跨欄位規則（版本號遞增、最低支援版本必須是未撤回的穩定版等）由 assets/js/release-model.js 的 checkReleaseRules 檢查。",
   "type": "object",
-  "required": ["schemaVersion", "generatedAt", "product", "releases"],
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "product",
+    "releases"
+  ],
   "additionalProperties": false,
   "properties": {
-    "$schema": { "type": "string" },
-    "schemaVersion": { "const": 1 },
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
     "mock": {
       "type": "boolean",
       "description": "true 時頁面頂端顯示「模擬資料」提示，且部署時加上 noindex。放上正式資料後移除或設為 false。"
@@ -24,26 +33,50 @@
     },
     "product": {
       "type": "object",
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "repositoryUrl": { "type": "string", "format": "uri" },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repositoryUrl": {
+          "type": "string",
+          "format": "uri"
+        },
         "requirements": {
           "type": "array",
           "description": "所有客戶都適用的系統需求，每項一行純文字。",
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "brokerRequirements": {
           "type": "array",
           "description": "各券商額外的前置條件。",
           "items": {
             "type": "object",
-            "required": ["broker", "items"],
+            "required": [
+              "broker",
+              "items"
+            ],
             "additionalProperties": false,
             "properties": {
-              "broker": { "type": "string", "minLength": 1 },
-              "items": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+              "broker": {
+                "type": "string",
+                "minLength": 1
+              },
+              "items": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
             }
           }
         }
@@ -51,7 +84,9 @@
     },
     "releases": {
       "type": "array",
-      "items": { "$ref": "#/$defs/release" }
+      "items": {
+        "$ref": "#/$defs/release"
+      }
     }
   },
   "$defs": {
@@ -62,12 +97,22 @@
     },
     "release": {
       "type": "object",
-      "required": ["version", "channel", "publishedAt", "assets"],
+      "required": [
+        "version",
+        "channel",
+        "publishedAt",
+        "assets"
+      ],
       "additionalProperties": false,
       "properties": {
-        "version": { "$ref": "#/$defs/version" },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
         "channel": {
-          "enum": ["preview", "stable"],
+          "enum": [
+            "preview",
+            "stable"
+          ],
           "description": "目前所在的發布通道。晉升時由 preview 改為 stable 並填入 promotedAt。"
         },
         "publishedAt": {
@@ -83,11 +128,20 @@
         "withdrawn": {
           "type": "object",
           "description": "撤回資訊。有此欄位代表已撤回：保留在歷程中但不再提供下載。",
-          "required": ["at", "reason"],
+          "required": [
+            "at",
+            "reason"
+          ],
           "additionalProperties": false,
           "properties": {
-            "at": { "type": "string", "format": "date-time" },
-            "reason": { "type": "string", "minLength": 1 }
+            "at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
         "summary": {
@@ -108,13 +162,17 @@
           "type": "boolean",
           "description": "這個版本更新了券商 COM 元件或啟動器，必須用安裝程式安裝，啟動器不會套用更新套件（QtOrder ADR-0035）。"
         },
-        "notes": { "$ref": "#/$defs/notes" },
+        "notes": {
+          "$ref": "#/$defs/notes"
+        },
         "assets": {
           "type": "array",
-          "description": "安裝程式與更新套件各一個。",
-          "minItems": 2,
-          "maxItems": 2,
-          "items": { "$ref": "#/$defs/asset" }
+          "description": "三家券商各有安裝程式與更新套件，共六個。",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "$ref": "#/$defs/asset"
+          }
         }
       }
     },
@@ -123,30 +181,78 @@
       "description": "版本說明，依類型分組；每項一行寫給客戶看的純文字，可用反引號標示程式碼或檔名。",
       "additionalProperties": false,
       "properties": {
-        "upgradeNotes": { "$ref": "#/$defs/noteItems", "description": "升級須知" },
-        "features": { "$ref": "#/$defs/noteItems", "description": "新功能" },
-        "improvements": { "$ref": "#/$defs/noteItems", "description": "改善" },
-        "fixes": { "$ref": "#/$defs/noteItems", "description": "修正" },
-        "knownIssues": { "$ref": "#/$defs/noteItems", "description": "已知問題" }
+        "upgradeNotes": {
+          "$ref": "#/$defs/noteItems",
+          "description": "升級須知"
+        },
+        "features": {
+          "$ref": "#/$defs/noteItems",
+          "description": "新功能"
+        },
+        "improvements": {
+          "$ref": "#/$defs/noteItems",
+          "description": "改善"
+        },
+        "fixes": {
+          "$ref": "#/$defs/noteItems",
+          "description": "修正"
+        },
+        "knownIssues": {
+          "$ref": "#/$defs/noteItems",
+          "description": "已知問題"
+        }
       }
     },
     "noteItems": {
       "type": "array",
-      "items": { "type": "string", "minLength": 1 }
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
     },
     "asset": {
       "type": "object",
-      "required": ["name", "kind", "size", "sha256", "url"],
+      "required": [
+        "name",
+        "kind",
+        "size",
+        "sha256",
+        "url",
+        "broker"
+      ],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
         "kind": {
-          "enum": ["installer", "update"],
+          "enum": [
+            "installer",
+            "update"
+          ],
           "description": "installer＝安裝程式（客戶第一次安裝用），update＝更新套件（啟動器自動更新用，無法單獨安裝）。"
         },
-        "size": { "type": "integer", "minimum": 0, "description": "位元組數" },
-        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-        "url": { "type": "string", "format": "uri" }
+        "size": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "位元組數"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "broker": {
+          "enum": [
+            "taishin",
+            "zf-mega",
+            "capital"
+          ]
+        }
       }
     }
   }

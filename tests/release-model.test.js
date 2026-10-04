@@ -21,12 +21,12 @@ function release(version, channel, { publishedAt, promotedAt, withdrawn } = {}) 
     ...(promotedAt && { promotedAt }),
     ...(withdrawn && { withdrawn }),
     summary: `v${version}`,
-    assets: [asset('installer', `Setup_QtOrder_v${version}.exe`), asset('update', `QtOrder_v${version}.zip`)],
+    assets: ['taishin', 'zf-mega', 'capital'].flatMap(broker => [{ ...asset('installer', `Setup_QtOrder_${broker}_v${version}.exe`), broker }, { ...asset('update', `QtOrder_${broker}_v${version}.zip`), broker }]),
   };
 }
 
 const record = (releases, minimumVersion = '1.0.0') => ({
-  schemaVersion: 1, generatedAt: '2026-10-01T00:00:00+08:00', product: { name: 'QtOrder' }, minimumVersion, releases,
+  schemaVersion: 2, generatedAt: '2026-10-01T00:00:00+08:00', product: { name: 'QtOrder' }, minimumVersion, releases,
 });
 
 const day = (n) => `2026-09-${String(n).padStart(2, '0')}T00:00:00+08:00`;
@@ -65,19 +65,20 @@ describe('更新清單', () => {
       release('1.0.0', 'preview', { publishedAt: day(1) }),
       release('1.1.0', 'stable', { publishedAt: day(2), promotedAt: day(3) }),
     ], '1.1.0'));
-    assert.equal(manifest.stable.version, '1.1.0');
-    assert.equal(manifest.preview.version, '1.1.0');
-    assert.equal(manifest.min_version, '1.1.0');
+    assert.equal(manifest.brokers.taishin.stable.version, '1.1.0');
+    assert.equal(manifest.brokers.taishin.preview.version, '1.1.0');
+    assert.equal(manifest.brokers.taishin.min_version, '1.1.0');
   });
 
   it('沿用啟動器既有欄位，並附上更新套件的雜湊與大小', () => {
     const manifest = buildUpdateManifest(mock);
-    assert.deepEqual(Object.keys(manifest), ['stable', 'preview', 'min_version']);
-    assert.equal(manifest.stable.version, '1.7.1');
-    assert.equal(manifest.preview.version, '1.8.0');
-    assert.match(manifest.stable.url, /QtOrder_v1\.7\.1\.zip$/);
-    assert.match(manifest.stable.sha256, /^[0-9a-f]{64}$/);
-    assert.ok(manifest.stable.size > 0);
+    assert.deepEqual(Object.keys(manifest), ['schemaVersion', 'brokers']);
+    assert.deepEqual(Object.keys(manifest.brokers), ['taishin', 'zf-mega', 'capital']);
+    assert.equal(manifest.brokers.taishin.stable.version, '1.7.1');
+    assert.equal(manifest.brokers.taishin.preview.version, '1.8.0');
+    assert.match(manifest.brokers.taishin.stable.url, /QtOrder_taishin_v1\.7\.1\.zip$/);
+    assert.match(manifest.brokers.taishin.stable.sha256, /^[0-9a-f]{64}$/);
+    assert.ok(manifest.brokers.taishin.stable.size > 0);
   });
 });
 
@@ -118,5 +119,30 @@ describe('發布紀錄驗證', () => {
     const data = record([]);
     delete data.minimumVersion;
     assert.deepEqual(validateReleaseData(data, schema), []);
+  });
+});
+
+describe('券商交付邊界', () => {
+  it('三家的清單只含自身下載檔案，最低版本規則一致', () => {
+    const manifest = buildUpdateManifest(mock);
+    for (const broker of ['taishin', 'zf-mega', 'capital']) {
+      const selected = manifest.brokers[broker];
+      for (const track of ['stable', 'preview']) {
+        assert.equal(selected[track].broker, broker);
+        assert.ok(selected[track].url.includes('_' + broker + '_'));
+      }
+      assert.equal(selected.min_version, mock.minimumVersion);
+    }
+  });
+  it('缺一家、重複種類及未知券商都不能發布', () => {
+    for (const change of [
+      assets => assets.pop(),
+      assets => { assets[0] = { ...assets[1] }; },
+      assets => { assets[0].broker = 'mega'; },
+    ]) {
+      const data = structuredClone(mock);
+      change(data.releases[0].assets);
+      assert.ok(validateReleaseData(data, schema).length > 0);
+    }
   });
 });

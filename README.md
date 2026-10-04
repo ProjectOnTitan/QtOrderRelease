@@ -49,7 +49,7 @@ GitHub Pages 約有 10 分鐘快取，發布後客戶最多晚 10 分鐘看到�
 
 | 動作 | 怎麼做 | 發布紀錄的變化 |
 | --- | --- | --- |
-| 發布預覽版 | 在 QtOrder 的 `release/preview` 觸發 | workflow 建立 GitHub Release（tag `v<版本>`、標為 prerelease）並上傳兩個下載檔案，新增一筆 `channel: "preview"` 的版本 |
+| 發布預覽版 | 在 QtOrder 的 `release/preview` 觸發 | workflow 建立 GitHub Release（tag `v<版本>`、標為 prerelease）並上傳三家券商共六個下載檔案，新增一筆 `channel: "preview"` 的版本 |
 | 晉升 | 把同一個 commit fast-forward 到 `release/stable` 後觸發 | 該版本的 `channel` 改為 `"stable"`、填入 `promotedAt`；下載檔案不變，GitHub Release 改為 latest |
 | 首發 | 第一個正式版本在 `release/stable` 觸發 | 清掉模擬資料，新增一筆 `channel: "stable"` 的版本，`minimumVersion` 設為這個版本 |
 | 緊急修正 | 在 `release/stable` 以新的版本號觸發 | 新增一筆 `channel: "stable"`、沒有 `promotedAt` 的版本；下一個預覽版必須包含同樣的修正 |
@@ -75,19 +75,79 @@ GitHub Pages 約有 10 分鐘快取，發布後客戶最多晚 10 分鐘看到�
 | `releases[].requiresInstaller` | 需重新安裝：這個版本更新了券商元件或啟動器，啟動器不會套用更新套件 |
 | `releases[].summary` | 一句話摘要，也是啟動器更新提示的內容 |
 | `releases[].notes` | 版本說明：`upgradeNotes`（升級須知）、`features`、`improvements`、`fixes`、`knownIssues` |
-| `releases[].assets` | `installer`（安裝程式）與 `update`（更新套件）各一個，含 `size` 與 `sha256` |
+| `releases[].assets` | 每家 `installer` 與 `update` 各一個，共六個；各含 `broker`、`size` 與 `sha256` |
 
 各通道的最新版本取未撤回的最高版本號；預覽版沒有比穩定版新的版本時，頁面提示改用穩定版，更新清單的 `preview` 也指向穩定版。
 
 ## 更新清單（`update.json`）
 
-沿用啟動器既有的格式，另加更新套件的 `sha256` 與 `size`，供啟動器下載後比對：
+更新清單使用 schemaVersion 2，先選券商，再讀發布通道。缺券商或券商識別不符時拒絕更新，不回退其他券商。
 
 ```json
 {
-  "stable":  { "version": "1.7.1", "url": "…/QtOrder_v1.7.1.zip", "sha256": "…", "size": 57737216, "description": "…" },
-  "preview": { "version": "1.8.0", "url": "…/QtOrder_v1.8.0.zip", "sha256": "…", "size": 58195968, "description": "…", "min_installer_version": "1.8.0" },
-  "min_version": "1.6.2"
+  "schemaVersion": 2,
+  "brokers": {
+    "taishin": {
+      "stable": {
+        "broker": "taishin",
+        "version": "1.7.1",
+        "url": "…/QtOrder_taishin_v1.7.1.zip",
+        "sha256": "…",
+        "size": 57737216,
+        "description": "…"
+      },
+      "preview": {
+        "broker": "taishin",
+        "version": "1.8.0",
+        "url": "…/QtOrder_taishin_v1.8.0.zip",
+        "sha256": "…",
+        "size": 58195968,
+        "description": "…",
+        "min_installer_version": "1.8.0"
+      },
+      "min_version": "1.6.2"
+    },
+    "zf-mega": {
+      "stable": {
+        "broker": "zf-mega",
+        "version": "1.7.1",
+        "url": "…/QtOrder_zf-mega_v1.7.1.zip",
+        "sha256": "…",
+        "size": 57737216,
+        "description": "…"
+      },
+      "preview": {
+        "broker": "zf-mega",
+        "version": "1.8.0",
+        "url": "…/QtOrder_zf-mega_v1.8.0.zip",
+        "sha256": "…",
+        "size": 58195968,
+        "description": "…",
+        "min_installer_version": "1.8.0"
+      },
+      "min_version": "1.6.2"
+    },
+    "capital": {
+      "stable": {
+        "broker": "capital",
+        "version": "1.7.1",
+        "url": "…/QtOrder_capital_v1.7.1.zip",
+        "sha256": "…",
+        "size": 57737216,
+        "description": "…"
+      },
+      "preview": {
+        "broker": "capital",
+        "version": "1.8.0",
+        "url": "…/QtOrder_capital_v1.8.0.zip",
+        "sha256": "…",
+        "size": 58195968,
+        "description": "…",
+        "min_installer_version": "1.8.0"
+      },
+      "min_version": "1.6.2"
+    }
+  }
 }
 ```
 

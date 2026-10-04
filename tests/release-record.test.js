@@ -16,10 +16,10 @@ const commitB = 'b'.repeat(40);
 const baseUrl = (version) => `https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v${version}`;
 const assetsJson = (version) => ({
   version,
-  assets: [
-    { name: `Setup_QtOrder_v${version}.exe`, kind: 'installer', size: 64421888, sha256: 'c'.repeat(64) },
-    { name: `QtOrder_v${version}.zip`, kind: 'update', size: 58195968, sha256: 'd'.repeat(64) },
-  ],
+  assets: ['taishin', 'zf-mega', 'capital'].flatMap(broker => [
+    { broker, name: `Setup_QtOrder_${broker}_v${version}.exe`, kind: 'installer', size: 64421888, sha256: 'c'.repeat(64) },
+    { broker, name: `QtOrder_${broker}_v${version}.zip`, kind: 'update', size: 58195968, sha256: 'd'.repeat(64) },
+  ]),
 });
 const notes = (summary = '修正與改善', extra = '') => `---\nsummary: ${summary}\nrequiresInstaller: false\n---\n\n## 修正\n- 修正一個問題\n${extra}`;
 const day = (n) => `2026-10-${String(n).padStart(2, '0')}T18:00:00+08:00`;
@@ -75,7 +75,7 @@ describe('首發', () => {
     assert.deepEqual(data.releases.map((r) => r.version), ['1.6.0']);
     assert.equal(data.releases[0].sourceCommit, commitA);
     assert.equal(data.releases[0].releaseUrl, 'https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.6.0');
-    assert.equal(data.releases[0].assets[1].url, `${baseUrl('1.6.0')}/QtOrder_v1.6.0.zip`);
+    assert.equal(data.releases[0].assets[1].url, `${baseUrl('1.6.0')}/QtOrder_taishin_v1.6.0.zip`);
     assert.deepEqual(validateReleaseData(data, schema), []);
   });
 });
@@ -140,7 +140,7 @@ describe('需要重新安裝', () => {
     assert.equal(minInstallerVersion(data.releases, { version: '1.6.0' }), null);
     assert.equal(minInstallerVersion(data.releases, { version: '1.8.0' }), '1.7.0');
 
-    const manifest = buildUpdateManifest(data);
+    const manifest = buildUpdateManifest(data).brokers.taishin;
     assert.equal(manifest.stable.version, '1.6.0');
     assert.equal('min_installer_version' in manifest.stable, false);
     assert.equal(manifest.preview.version, '1.8.0');
@@ -152,5 +152,24 @@ describe('需要重新安裝', () => {
 describe('時間', () => {
   it('以台北時間輸出', () => {
     assert.equal(taipeiNow(new Date('2026-10-03T16:30:05Z')), '2026-10-04T00:30:05+08:00');
+  });
+});
+
+describe('六個正式交付物', () => {
+  it('缺檔、重複券商、錯版本檔名、錯大小或雜湊皆在記錄發布前拒絕', () => {
+    for (const change of [
+      assets => assets.pop(),
+      assets => { assets[0] = { ...assets[2] }; },
+      assets => { assets[0].name = 'Setup_QtOrder_taishin_v9.0.0.exe'; },
+      assets => { assets[0].size = 0; },
+      assets => { assets[0].sha256 = 'bad'; },
+    ]) {
+      const metadata = assetsJson('1.6.0');
+      change(metadata.assets);
+      assert.throws(() => publishRelease(mock, {
+        version: '1.6.0', channel: 'stable', sourceCommit: commitA,
+        notesMarkdown: notes(), assetsJson: metadata, baseUrl: baseUrl('1.6.0'), at: day(4),
+      }));
+    }
   });
 });

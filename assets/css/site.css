@@ -1058,3 +1058,6 @@ main:focus { outline: none; }
     animation-iteration-count: 1 !important;
   }
 }
+
+/* 各券商雜湊容器限制在卡片寬度內，讓長雜湊沿用省略顯示。 */
+.channel-card__broker-hash { width: 100%; min-width: 0; }
