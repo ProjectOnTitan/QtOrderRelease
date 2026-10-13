@@ -1,8 +1,11 @@
 /* QtOrder 發布中心
  * 讀取 data/releases.json（發布紀錄）後渲染「最新版本」「版本歷程」「安裝與驗證」三區。
+ * 每個版本只含發布時勾選的券商（ADR-0005），「最新版本」依所選券商顯示；所選券商記在網址的 ?broker=。
  * 哪個版本算最新、預覽版何時不推薦，一律交給 release-model.js，與更新清單共用同一套規則。
  * 資料一律以 textContent 寫入 DOM，連結只接受 http(s)，即使 JSON 被竄改也無法注入腳本。 */
-import { BROKERS, BROKER_NAMES, findAsset, isWithdrawn, latestPreview, latestStable, stableSince } from './release-model.js';
+import {
+  BROKERS, BROKER_NAMES, brokersOf, findAsset, includesBroker, isWithdrawn, latestPreview, latestStable, stableSince,
+} from './release-model.js';
 
 const DATA_URL = 'data/releases.json';
 const PAGE_SIZE = 6;
@@ -36,7 +39,7 @@ const dateTimeFmt = new Intl.DateTimeFormat('zh-TW', {
 const relativeFmt = new Intl.RelativeTimeFormat('zh-TW', { numeric: 'auto' });
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-const state = { releases: [], filter: 'all', visible: PAGE_SIZE, open: new Set() };
+const state = { releases: [], minimums: {}, broker: BROKERS[0], filter: 'all', visible: PAGE_SIZE, open: new Set() };
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -113,6 +116,7 @@ function formatSize(bytes) {
 
 const fileType = (name) => (name.includes('.') ? name.split('.').pop().toUpperCase() : null);
 const releaseId = (release) => `v${release.version}`;
+const brokerNames = (brokers) => brokers.map((broker) => BROKER_NAMES[broker]).join('、');
 
 /* ---------- 資料 ---------- */
 
@@ -136,7 +140,7 @@ function normalizeReleases(list) {
     .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
 }
 
-const latestOf = (channel) => (channel === 'stable' ? latestStable(state.releases) : latestPreview(state.releases));
+const latestOf = (channel) => (channel === 'stable' ? latestStable(state.releases, state.broker) : latestPreview(state.releases, state.broker));
 const filtered = () => (state.filter === 'all' ? state.releases : state.releases.filter((r) => r.channel === state.filter));
 
 /* ---------- 共用元件 ---------- */
@@ -221,41 +225,43 @@ function renderLatest() {
 }
 
 function emptyCardText(channel) {
-  if (channel === 'preview' && latestStable(state.releases)) {
-    return `目前沒有比穩定版 v${latestStable(state.releases).version} 更新的預覽版，請使用穩定版。`;
-  }
-  return `目前沒有${CHANNELS[channel].label}。`;
+  const name = BROKER_NAMES[state.broker];
+  const stable = latestStable(state.releases, state.broker);
+  if (!state.releases.some((release) => includesBroker(release, state.broker))) return `${name}還沒有發布任何版本。`;
+  if (channel === 'preview' && stable) return `${name}目前沒有比穩定版 v${stable.version} 更新的預覽版，請使用穩定版。`;
+  return `${name}目前沒有${CHANNELS[channel].label}。`;
 }
 
 // 卡片上半部回答「選哪個通道、按哪裡下載」，下半部才是這個版本的細節。
 function channelCard(channel, release) {
   const meta = CHANNELS[channel];
+  const heading = `${BROKER_NAMES[state.broker]}最新${meta.label}`;
   const titleId = `latest-${channel}`;
   const glyph = el('span', { class: 'channel-card__glyph' }, icon(meta.icon));
   const label = el('p', { class: 'channel-card__label' }, meta.label);
   const hint = el('p', { class: 'channel-card__hint' }, meta.hint);
 
   if (!release) {
-    return el('article', { class: `channel-card channel-card--${channel}`, 'aria-label': `最新${meta.label}` },
+    return el('article', { class: `channel-card channel-card--${channel}`, 'aria-label': heading },
       el('div', { class: 'channel-card__main' }, glyph, label, hint, el('p', { class: 'empty-state' }, emptyCardText(channel))));
   }
 
   // 穩定版的日期是成為穩定版的那天，預覽版則是發布當天。
   const since = channel === 'stable' ? stableSince(release) : release.publishedAt;
   const sinceLabel = channel === 'stable' && release.promotedAt ? '晉升為穩定版' : '發布';
-  const installers = BROKERS.map(broker => findAsset(release, 'installer', broker)).filter(Boolean);
-
+  const installer = findAsset(release, 'installer', state.broker);
+  const fileId = `${titleId}-file`;
 
   return el('article', { class: `channel-card channel-card--${channel}`, 'aria-labelledby': titleId },
     el('div', { class: 'channel-card__main' },
       glyph,
       label,
       el('h2', { class: 'channel-card__version', id: titleId },
-        el('span', { class: 'visually-hidden' }, `最新${meta.label} `), `v${release.version}`),
+        el('span', { class: 'visually-hidden' }, `${heading} `), `v${release.version}`),
       hint,
-      ...installers.map(asset => el('div', { class: 'channel-card__actions' },
-        downloadButton(asset, meta.button, `${titleId}-${asset.broker}-file`),
-        el('p', { class: 'channel-card__file', id: `${titleId}-${asset.broker}-file` }, fileMeta(asset)))),
+      installer && el('div', { class: 'channel-card__actions' },
+        downloadButton(installer, meta.button, fileId),
+        el('p', { class: 'channel-card__file', id: fileId }, fileMeta(installer))),
       // 放在下載按鈕旁、分隔線之上，兩張卡片的下半部才維持相同結構、分隔線對齊
       release.requiresInstaller && el('p', { class: 'channel-card__notice' }, icon('i-alert', 'icon icon--sm'), INSTALLER_NOTICE)),
     el('div', { class: 'channel-card__details' },
@@ -265,8 +271,56 @@ function channelCard(channel, release) {
         el('span', {}, formatRelative(since))),
       el('a', { class: 'text-link', href: `#${releaseId(release)}` },
         `查看 v${release.version} 版本說明`, icon('i-chevron-right', 'icon icon--sm icon--move')),
-      ...installers.map(asset => el('div', { class: 'channel-card__broker-hash' },
-        el('p', { class: 'channel-card__meta' }, BROKER_NAMES[asset.broker]), hashRow(asset, 'compact')))));
+      installer && el('div', { class: 'channel-card__broker-hash' }, hashRow(installer, 'compact'))));
+}
+
+/* ---------- 券商 ---------- */
+
+// 沒有指定券商時，預設第一家已有穩定版的券商。
+const defaultBroker = () => BROKERS.find((broker) => latestStable(state.releases, broker)) ?? BROKERS[0];
+
+function setBroker(broker, { persist }) {
+  state.broker = BROKERS.includes(broker) ? broker : defaultBroker();
+  for (const button of document.querySelectorAll('[data-broker]')) {
+    button.setAttribute('aria-pressed', String(button.dataset.broker === state.broker));
+  }
+  if (!persist) return;
+  // 寫進網址，券商 IT 轉給客戶的連結就會直接顯示那一家
+  const url = new URL(location.href);
+  url.searchParams.set('broker', state.broker);
+  history.replaceState(history.state, '', url);
+}
+
+// 「最新版本」、最低支援版本與核對指令都跟著所選券商。
+function renderBroker() {
+  renderLatest();
+
+  const minimum = $('[data-minimum]');
+  const version = state.minimums[state.broker];
+  minimum.hidden = typeof version !== 'string';
+  if (!minimum.hidden) {
+    minimum.replaceChildren(icon('i-info', 'icon icon--sm'),
+      el('span', {}, `${BROKER_NAMES[state.broker]}最低支援版本：v${version}（本機版本較舊時，啟動 QtOrder 會被要求更新到最新穩定版）`));
+  }
+
+  const release = latestStable(state.releases, state.broker) ?? latestPreview(state.releases, state.broker);
+  const installer = release && findAsset(release, 'installer', state.broker);
+  $('#hash-command').textContent = `Get-FileHash .\\${installer?.name ?? `Setup_QtOrder_${state.broker}_v<版本>.exe`} -Algorithm SHA256`;
+}
+
+function initBrokerSwitch() {
+  $('#broker-switch').replaceChildren(...BROKERS.map((broker) => {
+    const button = el('button', { class: 'filter__btn', type: 'button', 'data-broker': broker, 'aria-pressed': 'false' }, BROKER_NAMES[broker]);
+    button.addEventListener('click', () => {
+      if (broker === state.broker) return;
+      setBroker(broker, { persist: true });
+      $('#latest').setAttribute('data-switched', '');
+      renderBroker();
+      const stable = latestStable(state.releases, broker);
+      announce(`已切換到${BROKER_NAMES[broker]}${stable ? `，最新穩定版 v${stable.version}` : ''}`);
+    });
+    return button;
+  }));
 }
 
 /* ---------- 版本歷程 ---------- */
@@ -304,7 +358,9 @@ function releaseItem(release) {
     channelBadge(release.channel),
     release.requiresInstaller && installerBadge(),
     withdrawn && withdrawnBadge()),
-  el('time', { class: 'release__date', datetime: release.publishedAt }, formatDate(release.publishedAt)),
+  el('span', { class: 'release__date' },
+    el('time', { datetime: release.publishedAt }, formatDate(release.publishedAt)),
+    el('span', { class: 'release__brokers' }, brokerNames(brokersOf(release)))),
   el('span', { class: 'release__indicator' }, icon('i-plus')));
 
   toggle.addEventListener('click', () => {
@@ -322,14 +378,22 @@ function releaseItem(release) {
       panel));
 }
 
-// 第一個版本直接發布為穩定版（首發），之後直接發布為穩定版的才是緊急修正。
-const isInitialRelease = (release) => state.releases.every((other) => Date.parse(other.publishedAt) >= Date.parse(release.publishedAt));
+// 每家第一個包含它的版本直接發布為穩定版，是那家的首發；其餘直接發布為穩定版的才是緊急修正。
+const firstReleaseFor = (release) => brokersOf(release).filter((broker) => state.releases.every((other) => other === release
+  || !includesBroker(other, broker) || Date.parse(other.publishedAt) >= Date.parse(release.publishedAt)));
+
+function directStableLabel(release) {
+  const first = firstReleaseFor(release);
+  if (!first.length) return '直接發布為穩定版（緊急修正）';
+  const rest = brokersOf(release).filter((broker) => !first.includes(broker));
+  return rest.length ? `直接發布為穩定版（${brokerNames(first)}首發，${brokerNames(rest)}緊急修正）` : '首次發布為穩定版';
+}
 
 // 這個版本走過哪些通道：預覽版 → 晉升為穩定版，或首發、緊急修正直接發布為穩定版。
 function releaseTimeline(release) {
   const steps = [];
   if (release.channel === 'stable' && !release.promotedAt) {
-    steps.push(`${formatDate(release.publishedAt)} ${isInitialRelease(release) ? '首次發布為穩定版' : '直接發布為穩定版（緊急修正）'}`);
+    steps.push(`${formatDate(release.publishedAt)} ${directStableLabel(release)}`);
   } else {
     steps.push(`${formatDate(release.publishedAt)} 發布於預覽版`);
     if (release.promotedAt) steps.push(`${formatDate(release.promotedAt)} 晉升為穩定版`);
@@ -443,10 +507,6 @@ function renderInstall(product) {
   $('#broker-requirements').replaceChildren(...brokers.map(({ broker, items }) => el('section', { class: 'broker-req' },
     el('h4', {}, broker),
     el('ul', { class: 'req-list req-list--compact' }, items.map((item) => el('li', {}, icon('i-circle-check', 'icon icon--sm'), el('span', {}, richText(item))))))));
-
-  const stable = latestStable(state.releases);
-  const installer = stable && findAsset(stable, 'installer', 'taishin');
-  if (installer) $('#hash-command').textContent = `Get-FileHash .\\${installer.name} -Algorithm SHA256`;
 }
 
 function renderMeta(data) {
@@ -459,13 +519,6 @@ function renderMeta(data) {
         el('span', {}, '資料更新：', el('time', { datetime: data.generatedAt }, `${formatDateTime(data.generatedAt)}（台北時間）`)));
       node.hidden = false;
     }
-  }
-
-  const minimum = $('[data-minimum]');
-  minimum.hidden = typeof data.minimumVersion !== 'string';
-  if (!minimum.hidden) {
-    minimum.replaceChildren(icon('i-info', 'icon icon--sm'),
-      el('span', {}, `最低支援版本：v${data.minimumVersion}（本機版本較舊時，啟動 QtOrder 會被要求更新到最新穩定版）`));
   }
 
   const repo = safeUrl(data.product?.repositoryUrl);
@@ -526,10 +579,13 @@ async function load() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     state.releases = normalizeReleases(data.releases);
+    state.minimums = data.minimumVersions && typeof data.minimumVersions === 'object' ? data.minimumVersions : {};
 
-    setFilter(new URLSearchParams(location.search).get('channel'));
+    const params = new URLSearchParams(location.search);
+    setBroker(params.get('broker'), { persist: false });
+    setFilter(params.get('channel'));
     renderMeta(data);
-    renderLatest();
+    renderBroker();
     renderCounts();
     renderHistory();
     renderInstall(data.product);
@@ -541,6 +597,7 @@ async function load() {
 
 function init() {
   initLocalNav();
+  initBrokerSwitch();
 
   for (const button of document.querySelectorAll('[data-filter]')) {
     button.addEventListener('click', () => {

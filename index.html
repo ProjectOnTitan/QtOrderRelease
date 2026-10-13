@@ -74,6 +74,8 @@
         <p class="eyebrow">QtOrder Releases</p>
         <h1 id="download-title">下載 QtOrder</h1>
         <p class="lead">新版本會先在預覽版發布，驗證通過後晉升為穩定版。正式交易請使用穩定版；想搶先試用新功能，再選擇預覽版。</p>
+        <p class="broker-hint">各券商的版本分別發布，請選擇你使用的券商</p>
+        <div class="filter broker-switch" id="broker-switch" role="group" aria-label="選擇券商"></div>
         <div class="hero-meta">
           <p class="updated" data-updated hidden></p>
           <p class="updated" data-minimum hidden></p>
@@ -160,7 +162,7 @@
                 <div class="steps__body">
                   <strong>核對檔案</strong>：在安裝程式所在的資料夾開啟 PowerShell，執行下列指令：
                   <div class="codeblock">
-                    <code id="hash-command">Get-FileHash .\Setup_QtOrder_v&lt;版本&gt;.exe -Algorithm SHA256</code>
+                    <code id="hash-command">Get-FileHash .\Setup_QtOrder_&lt;券商識別&gt;_v&lt;版本&gt;.exe -Algorithm SHA256</code>
                     <button class="icon-btn" id="copy-command" type="button" aria-label="複製指令">
                       <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg>
                     </button>

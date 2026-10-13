@@ -403,6 +403,14 @@ main:focus { outline: none; }
 }
 .updated .icon { margin-top: 3px; }
 
+/* 券商切換沿用通道篩選的分段控制；各家的最新版本不同，放在卡片之前先選 */
+.broker-hint {
+  margin-top: 32px;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+.broker-switch { margin-top: 12px; }
+
 .channel-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -521,6 +529,8 @@ main:focus { outline: none; }
 @media (prefers-reduced-motion: no-preference) {
   .channel-card:not(.channel-card--skeleton) { animation: rise 0.7s var(--ease) both; }
   .channel-card:not(.channel-card--skeleton):nth-child(2) { animation-delay: 0.08s; }
+  /* 只在第一次載入時浮現；切換券商時直接換內容，連續切換才不會閃爍 */
+  .channel-grid[data-switched] .channel-card { animation: none; }
 }
 
 @keyframes rise {
@@ -713,6 +723,9 @@ main:focus { outline: none; }
   letter-spacing: -0.01em;
 }
 .release__date {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 12px;
   grid-column: 1;
   color: var(--text-secondary);
   font-size: 0.875rem;
