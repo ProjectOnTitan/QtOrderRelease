@@ -2,7 +2,7 @@
   "$schema": "./releases.schema.json",
   "schemaVersion": 3,
   "mock": false,
-  "generatedAt": "2026-10-13T21:15:20+08:00",
+  "generatedAt": "2026-10-13T21:33:56+08:00",
   "minimumVersions": {
     "taishin": "1.6.0",
     "zf-mega": "1.6.0",
@@ -69,6 +69,83 @@
     ]
   },
   "releases": [
+    {
+      "version": "1.6.1",
+      "channel": "stable",
+      "publishedAt": "2026-10-13T21:33:56+08:00",
+      "sourceCommit": "b95ea51a0934fc73b4d0d78526c1bdf44623b2c1",
+      "requiresInstaller": true,
+      "summary": "修正群益安裝程式無法註冊下單元件的問題，安裝程式改為繁體中文並會自動安裝缺少的必要元件。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.6.1",
+      "notes": {
+        "upgradeNotes": [
+          "這一版需要重新執行安裝程式，啟動器不會自動更新：請到發布中心下載所使用券商的安裝程式，安裝到原本的資料夾，不需要先解除安裝",
+          "安裝時若缺少必要元件，安裝程式會從官方網站下載並安裝，需要連上網際網路，可能多花幾分鐘",
+          "群益證券：安裝 1.6.0 時出現「RegSvr32 failed with exit code 0x3」並選擇略過的客戶，請執行這一版的安裝程式，否則無法使用群益的下單元件"
+        ],
+        "features": [
+          "安裝程式會檢查並自動安裝各券商需要的元件（.NET Framework 4.8、Microsoft Visual C++ 執行階段、台新所需的 Node.js），自動安裝失敗時會提示官方載點",
+          "發布中心的「安裝與驗證」列出各券商需要的元件與官方載點"
+        ],
+        "improvements": [
+          "安裝程式改為繁體中文",
+          "主程式、啟動器與安裝程式改用 QtOrder 產品圖示"
+        ],
+        "fixes": [
+          "修正群益證券的安裝程式在部分電腦上無法註冊下單元件（RegSvr32 結束代碼 0x3）的問題"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtOrder_taishin_v1.6.1.exe",
+          "broker": "taishin",
+          "kind": "installer",
+          "size": 22655566,
+          "sha256": "9d3af0a77985b25eb4116df838106253713568d064ee91d05279ae18b857bd2d",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.1/Setup_QtOrder_taishin_v1.6.1.exe"
+        },
+        {
+          "name": "QtOrder_taishin_v1.6.1.zip",
+          "broker": "taishin",
+          "kind": "update",
+          "size": 22814203,
+          "sha256": "f2b5eb51ea5371052a6b86f20125c61fd474aaf3f1653b542c4af5ebb7ce3c77",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.1/QtOrder_taishin_v1.6.1.zip"
+        },
+        {
+          "name": "Setup_QtOrder_zf-mega_v1.6.1.exe",
+          "broker": "zf-mega",
+          "kind": "installer",
+          "size": 17744520,
+          "sha256": "091cc89655f66a31caa9e9d2013991faa09022bd5dacb4f4fc28860fb3df7dbb",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.1/Setup_QtOrder_zf-mega_v1.6.1.exe"
+        },
+        {
+          "name": "QtOrder_zf-mega_v1.6.1.zip",
+          "broker": "zf-mega",
+          "kind": "update",
+          "size": 16662532,
+          "sha256": "10d2aad61fc145f1ce6d77af2a8f98895a401e19183fe96a3404ad22aa48bdc7",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.1/QtOrder_zf-mega_v1.6.1.zip"
+        },
+        {
+          "name": "Setup_QtOrder_capital_v1.6.1.exe",
+          "broker": "capital",
+          "kind": "installer",
+          "size": 26370283,
+          "sha256": "8a70979f7c919c9f3c999b95e8467be2a5ebeba1b245ea23dab1eaa6706d9101",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.1/Setup_QtOrder_capital_v1.6.1.exe"
+        },
+        {
+          "name": "QtOrder_capital_v1.6.1.zip",
+          "broker": "capital",
+          "kind": "update",
+          "size": 27518106,
+          "sha256": "52a0ae60f0641f68f6286380b96987b680d64e7614c80622c21427a41b501b28",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.1/QtOrder_capital_v1.6.1.zip"
+        }
+      ]
+    },
     {
       "version": "1.6.0",
       "channel": "stable",
