@@ -29,7 +29,6 @@
     <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
     <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
-    <symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
     <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
     <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
@@ -37,7 +36,6 @@
     <symbol id="i-flask" viewBox="0 0 24 24"><path d="M10 2v7.53a2 2 0 0 1-.21.9L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.07-10.12a2 2 0 0 1-.21-.9V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
     <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
-    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
   </svg>
 
@@ -71,13 +69,10 @@
   <main id="main" tabindex="-1">
     <section class="hero" id="download" aria-labelledby="download-title">
       <div class="container">
-        <p class="eyebrow">QtOrder Releases</p>
         <h1 id="download-title">下載 QtOrder</h1>
-        <p class="lead">新版本會先在預覽版發布，驗證通過後晉升為穩定版。正式交易請使用穩定版；想搶先試用新功能，再選擇預覽版。</p>
-        <p class="broker-hint">各券商的版本分別發布，請選擇你使用的券商</p>
+        <p class="broker-hint">請選擇你使用的券商</p>
         <div class="filter broker-switch" id="broker-switch" role="group" aria-label="選擇券商"></div>
         <div class="hero-meta">
-          <p class="updated" data-updated hidden></p>
           <p class="updated" data-minimum hidden></p>
         </div>
 
@@ -106,7 +101,7 @@
         <div class="section-head">
           <div>
             <h2 id="history-title">版本歷程</h2>
-            <p class="section-desc">每個版本的變更內容、下載檔案與 SHA-256 雜湊值。</p>
+            <p class="section-desc">每個版本的變更內容與下載檔案。</p>
           </div>
           <div class="filter" role="group" aria-label="依發布通道篩選">
             <button class="filter__btn" type="button" data-filter="all" aria-pressed="true">全部 <span class="filter__count" data-count="all"></span></button>
@@ -135,7 +130,7 @@
         <div class="section-head">
           <div>
             <h2 id="install-title">安裝與驗證</h2>
-            <p class="section-desc">安裝前請確認系統需求；下載後先核對 SHA-256，確認檔案完整且未被竄改，再執行安裝程式。</p>
+            <p class="section-desc">安裝前請先確認系統需求。</p>
           </div>
         </div>
 
@@ -144,8 +139,8 @@
             <h3>系統需求</h3>
             <ul class="req-list" id="requirements" role="list"></ul>
             <div class="broker-reqs" id="broker-requirements"></div>
-            <section class="network-req" aria-labelledby="network-title">
-              <h4 id="network-title">自動更新需要連線的網域</h4>
+            <details class="disclosure network-req">
+              <summary>自動更新需要連線的網域<svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary>
               <p>公司或券商有防火牆時，請放行下列網域。連不上時 QtOrder 仍會在倒數後啟動目前的版本，只是收不到更新。</p>
               <ul class="domain-list" role="list">
                 <li><code>projectontitan.github.io</code></li>
@@ -153,10 +148,13 @@
                 <li><code>release-assets.githubusercontent.com</code></li>
                 <li><code>objects.githubusercontent.com</code></li>
               </ul>
-            </section>
+            </details>
           </div>
-          <div class="install-card">
-            <h3>安裝步驟</h3>
+          <details class="install-card install-steps">
+            <summary>
+              <h3>安裝步驟</h3>
+              <span class="install-steps__indicator"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-plus"/></svg></span>
+            </summary>
             <ol class="steps" role="list">
               <li>
                 <div class="steps__body">
@@ -167,7 +165,7 @@
                       <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-copy"/></svg>
                     </button>
                   </div>
-                  把輸出的 <code>Hash</code> 與本頁該檔案的 SHA-256 比對（不分大小寫）。兩者不一致時請勿執行，並重新下載。
+                  把輸出的 <code>Hash</code> 與本頁該檔案的 SHA-256（點選各檔案的「SHA-256」顯示）比對，不分大小寫。兩者不一致時請勿執行，並重新下載。
                 </div>
               </li>
               <li>
@@ -186,7 +184,7 @@
                 </div>
               </li>
             </ol>
-          </div>
+          </details>
         </div>
       </div>
     </section>

@@ -13,8 +13,8 @@ const TIME_ZONE = 'Asia/Taipei';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const CHANNELS = {
-  stable: { label: '穩定版', icon: 'i-shield-check', hint: '建議正式交易使用；新版本通常先在預覽版驗證，再晉升到這裡。', button: 'primary' },
-  preview: { label: '預覽版', icon: 'i-flask', hint: '新版本最先在這裡發布，可能仍有未修正的問題，請勿用於正式交易。', button: 'secondary' },
+  stable: { label: '穩定版', icon: 'i-shield-check', hint: '建議正式交易使用，由預覽版驗證後晉升。', button: 'primary' },
+  preview: { label: '預覽版', icon: 'i-flask', hint: '搶先試用新功能，請勿用於正式交易。', button: 'secondary' },
 };
 
 const NOTE_TYPES = [
@@ -28,9 +28,10 @@ const NOTE_TYPES = [
 // 陣列順序就是版本歷程中下載檔案的顯示順序。
 const ASSET_KINDS = {
   installer: { label: '安裝程式', icon: 'i-download' },
-  update: { label: '更新套件', icon: 'i-package', hint: '供啟動器自動更新使用，無法單獨安裝；第一次安裝請用安裝程式。' },
+  update: { label: '更新套件', icon: 'i-package' },
 };
 const ASSET_ORDER = Object.keys(ASSET_KINDS);
+const ASSET_NOTE = '第一次安裝請用安裝程式；更新套件供啟動器自動更新使用，無法單獨安裝。';
 
 const dateFmt = new Intl.DateTimeFormat('zh-TW', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
 const dateTimeFmt = new Intl.DateTimeFormat('zh-TW', {
@@ -208,12 +209,19 @@ async function copyText(text) {
   }
 }
 
-function hashRow(asset, variant) {
+// 點選後才顯示的細節用原生 details：展開狀態、鍵盤操作與報讀器朗讀都由瀏覽器處理。
+function disclosure(summary, ...content) {
+  return el('details', { class: 'disclosure' },
+    el('summary', {}, summary, icon('i-chevron-down', 'icon icon--sm')),
+    ...content);
+}
+
+// 只有要核對檔案的人用得到，預設收合。
+function hashRow(asset) {
   if (typeof asset.sha256 !== 'string') return null;
-  return el('div', { class: `hash hash--${variant}` },
-    el('span', { class: 'hash__label' }, 'SHA-256'),
-    el('code', { class: 'hash__value', title: variant === 'compact' ? asset.sha256 : null }, asset.sha256),
-    copyButton(asset.sha256, ` ${asset.name} 的 SHA-256`));
+  return disclosure('SHA-256', el('div', { class: 'hash' },
+    el('code', { class: 'hash__value' }, asset.sha256),
+    copyButton(asset.sha256, ` ${asset.name} 的 SHA-256`)));
 }
 
 /* ---------- 最新版本 ---------- */
@@ -264,14 +272,14 @@ function channelCard(channel, release) {
         el('p', { class: 'channel-card__file', id: fileId }, fileMeta(installer))),
       // 放在下載按鈕旁、分隔線之上，兩張卡片的下半部才維持相同結構、分隔線對齊
       release.requiresInstaller && el('p', { class: 'channel-card__notice' }, icon('i-alert', 'icon icon--sm'), INSTALLER_NOTICE)),
+    // 摘要只放在版本歷程，這裡用連結帶過去，不重複
     el('div', { class: 'channel-card__details' },
-      release.summary && el('p', { class: 'channel-card__summary' }, release.summary),
       el('p', { class: 'channel-card__meta' },
         el('time', { datetime: since }, `${formatDate(since)} ${sinceLabel}`),
         el('span', {}, formatRelative(since))),
       el('a', { class: 'text-link', href: `#${releaseId(release)}` },
         `查看 v${release.version} 版本說明`, icon('i-chevron-right', 'icon icon--sm icon--move')),
-      installer && el('div', { class: 'channel-card__broker-hash' }, hashRow(installer, 'compact'))));
+      installer && hashRow(installer)));
 }
 
 /* ---------- 券商 ---------- */
@@ -300,7 +308,7 @@ function renderBroker() {
   minimum.hidden = typeof version !== 'string';
   if (!minimum.hidden) {
     minimum.replaceChildren(icon('i-info', 'icon icon--sm'),
-      el('span', {}, `${BROKER_NAMES[state.broker]}最低支援版本：v${version}（本機版本較舊時，啟動 QtOrder 會被要求更新到最新穩定版）`));
+      el('span', {}, `${BROKER_NAMES[state.broker]}最低支援版本：v${version}`));
   }
 
   const release = latestStable(state.releases, state.broker) ?? latestPreview(state.releases, state.broker);
@@ -399,6 +407,8 @@ function releaseTimeline(release) {
     if (release.promotedAt) steps.push(`${formatDate(release.promotedAt)} 晉升為穩定版`);
   }
   if (release.withdrawn) steps.push(`${formatDate(release.withdrawn.at)} 撤回`);
+  // 只有一步時，日期與通道標題列都已經寫了
+  if (steps.length < 2) return null;
   return el('p', { class: 'release__timeline' }, steps.join(' → '));
 }
 
@@ -422,34 +432,26 @@ function releaseBody(release) {
     ];
   }
 
-  const releaseUrl = safeUrl(release.releaseUrl);
+  // 需重新安裝已由標題列的標籤與升級須知說明，這裡不再重複
   return [
     releaseTimeline(release),
-    release.requiresInstaller && el('div', { class: 'callout callout--notice' },
-      icon('i-alert'),
-      el('div', {},
-        el('p', { class: 'callout__title' }, '需要重新執行安裝程式'),
-        el('p', {}, '這個版本更新了券商元件或啟動器，啟動器不會自動套用更新套件。請下載安裝程式並執行，安裝時會保留既有設定。'))),
     notes,
     el('div', {},
       el('h4', { class: 'panel-subtitle' }, '下載檔案'),
-      el('ul', { class: 'asset-list', role: 'list' }, release.assets.map((asset) => assetItem(asset, release)))),
-    releaseUrl && el('p', { class: 'release__links' },
-      el('a', { class: 'text-link', href: releaseUrl }, '在 GitHub 檢視此版本', icon('i-external', 'icon icon--sm'))),
+      el('p', { class: 'asset-note' }, ASSET_NOTE),
+      el('ul', { class: 'asset-list', role: 'list' }, release.assets.map(assetItem))),
   ];
 }
 
-function assetItem(asset, release) {
+function assetItem(asset) {
   const kind = ASSET_KINDS[asset.kind] ?? { label: '檔案', icon: 'i-file' };
   const href = safeUrl(asset.url);
-  const hint = asset.kind === 'update' && release.requiresInstaller ? '此版本必須用安裝程式安裝，啟動器不會套用這個更新套件。' : kind.hint;
   return el('li', { class: 'asset' },
     el('span', { class: 'asset__icon' }, icon(kind.icon)),
     el('div', { class: 'asset__body' },
       el('p', { class: 'asset__name' }, asset.name),
       el('p', { class: 'asset__meta' }, [BROKER_NAMES[asset.broker], kind.label, formatSize(asset.size)].filter(Boolean).join(' · ')),
-      hint && el('p', { class: 'asset__hint' }, hint),
-      hashRow(asset, 'full')),
+      hashRow(asset)),
     href && el('a', { class: 'btn btn--secondary asset__download', href },
       icon('i-download'), '下載', el('span', { class: 'visually-hidden' }, ` ${asset.name}`)));
 }
@@ -513,12 +515,9 @@ function renderMeta(data) {
   $('#mock-banner').hidden = data.mock !== true;
 
   if (!Number.isNaN(Date.parse(data.generatedAt))) {
-    for (const node of document.querySelectorAll('[data-updated]')) {
-      node.replaceChildren(
-        node.classList.contains('updated') ? icon('i-clock', 'icon icon--sm') : '',
-        el('span', {}, '資料更新：', el('time', { datetime: data.generatedAt }, `${formatDateTime(data.generatedAt)}（台北時間）`)));
-      node.hidden = false;
-    }
+    const node = $('[data-updated]');
+    node.replaceChildren('資料更新：', el('time', { datetime: data.generatedAt }, `${formatDateTime(data.generatedAt)}（台北時間）`));
+    node.hidden = false;
   }
 
   const repo = safeUrl(data.product?.repositoryUrl);
