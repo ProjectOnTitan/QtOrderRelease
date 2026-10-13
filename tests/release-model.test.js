@@ -154,6 +154,16 @@ describe('發布紀錄驗證', () => {
     assert.equal(validateReleaseData(data, schema).length, 2);
   });
 
+  it('必要元件只接受認得的券商識別與 https 載點', () => {
+    const data = structuredClone(mock);
+    data.product.components = [
+      { name: 'A', brokers: ['mega'], url: 'https://example.test/a' },
+      { name: 'B', brokers: ['taishin'], url: 'http://example.test/b' },
+      { name: 'C', brokers: [], url: 'https://example.test/c' },
+    ];
+    assert.equal(validateReleaseData(data, schema).length, 3);
+  });
+
   it('擋下跨欄位規則的錯誤', () => {
     const cases = [
       [[release('1.0.0', 'stable'), release('1.0.0', 'stable', { publishedAt: day(2) })], '1.0.0', /重複/],

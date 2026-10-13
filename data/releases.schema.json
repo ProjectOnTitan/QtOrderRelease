@@ -85,6 +85,45 @@
               }
             }
           }
+        },
+        "components": {
+          "type": "array",
+          "description": "各券商需要另外安裝的元件，安裝程式缺少時會自動安裝；與 QtOrder 的 deploy/prerequisites.ps1 一致。",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "brokers",
+              "url"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "purpose": {
+                "type": "string",
+                "description": "用途，一句話。",
+                "minLength": 1
+              },
+              "brokers": {
+                "type": "array",
+                "description": "需要這個元件的券商。",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/$defs/broker"
+                }
+              },
+              "url": {
+                "type": "string",
+                "description": "官方載點，只接受 https。",
+                "format": "uri",
+                "pattern": "^https://"
+              }
+            }
+          }
         }
       }
     },

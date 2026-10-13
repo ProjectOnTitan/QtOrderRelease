@@ -509,6 +509,25 @@ function renderInstall(product) {
   $('#broker-requirements').replaceChildren(...brokers.map(({ broker, items }) => el('section', { class: 'broker-req' },
     el('h4', {}, broker),
     el('ul', { class: 'req-list req-list--compact' }, items.map((item) => el('li', {}, icon('i-circle-check', 'icon icon--sm'), el('span', {}, richText(item))))))));
+
+  renderComponents(product);
+}
+
+// 必要元件與 QtOrder 安裝程式自動安裝的清單一致；官方載點只接受 http(s)，不合格就不顯示連結。
+function renderComponents(product) {
+  const components = Array.isArray(product?.components) ? product.components : [];
+  $('#components-card').hidden = components.length === 0;
+  $('#components').replaceChildren(...components.map(({ name, purpose, brokers, url }) => {
+    const href = safeUrl(url);
+    const known = (Array.isArray(brokers) ? brokers : []).filter((broker) => BROKER_NAMES[broker]);
+    return el('li', { class: 'component' },
+      el('div', { class: 'component__body' },
+        el('h4', { class: 'component__name' }, name),
+        purpose && el('p', { class: 'component__meta' }, purpose),
+        known.length > 0 && el('p', { class: 'component__meta' }, `適用：${brokerNames(known)}`)),
+      href && el('a', { class: 'btn btn--secondary btn--sm component__link', href },
+        '官方下載', el('span', { class: 'visually-hidden' }, `：${name}`)));
+  }));
 }
 
 function renderMeta(data) {

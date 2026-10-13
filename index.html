@@ -140,7 +140,7 @@
             <ul class="req-list" id="requirements" role="list"></ul>
             <div class="broker-reqs" id="broker-requirements"></div>
             <details class="disclosure network-req">
-              <summary>自動更新需要連線的網域<svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary>
+              <summary>自動更新與安裝需要連線的網域<svg class="icon icon--sm" aria-hidden="true" focusable="false"><use href="#i-chevron-down"/></svg></summary>
               <p>公司或券商有防火牆時，請放行下列網域。連不上時 QtOrder 仍會在倒數後啟動目前的版本，只是收不到更新。</p>
               <ul class="domain-list" role="list">
                 <li><code>projectontitan.github.io</code></li>
@@ -148,7 +148,20 @@
                 <li><code>release-assets.githubusercontent.com</code></li>
                 <li><code>objects.githubusercontent.com</code></li>
               </ul>
+              <p>安裝程式自動安裝必要元件時，另外需要連到下列網域；連不上時請依「必要元件」的官方載點手動安裝。</p>
+              <ul class="domain-list" role="list">
+                <li><code>go.microsoft.com</code></li>
+                <li><code>download.microsoft.com</code></li>
+                <li><code>aka.ms</code></li>
+                <li><code>download.visualstudio.microsoft.com</code></li>
+                <li><code>nodejs.org</code></li>
+              </ul>
             </details>
+          </div>
+          <div class="install-card" id="components-card" hidden>
+            <h3>必要元件</h3>
+            <p class="install-card__lead">各券商的安裝程式會檢查該券商需要的元件，缺少時自動從官方網站下載安裝。自動安裝失敗時，請從下方的官方載點手動安裝，再開啟 QtOrder。</p>
+            <ul class="component-list" id="components" role="list"></ul>
           </div>
           <details class="install-card install-steps">
             <summary>
@@ -170,7 +183,7 @@
               </li>
               <li>
                 <div class="steps__body">
-                  <strong>執行安裝程式</strong>：需要系統管理員權限。QtOrder 目前沒有數位簽章，Windows 會顯示「Windows 已保護您的電腦」；確認上一步的 SHA-256 相符後，點「其他資訊」→「仍要執行」。
+                  <strong>執行安裝程式</strong>：需要系統管理員權限。QtOrder 目前沒有數位簽章，Windows 會顯示「Windows 已保護您的電腦」；確認上一步的 SHA-256 相符後，點「其他資訊」→「仍要執行」。缺少必要元件時，安裝程式會先下載安裝，可能需要數分鐘。
                 </div>
               </li>
               <li>

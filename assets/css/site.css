@@ -906,6 +906,7 @@ main:focus { outline: none; }
   font-size: 0.9375rem;
 }
 .network-req p { color: var(--text-secondary); }
+.network-req .domain-list + p { margin-top: 16px; }
 /* 網域要能整段複製，逐項分行、不在中間斷開 */
 .domain-list {
   display: flex;
@@ -922,6 +923,31 @@ main:focus { outline: none; }
   background: var(--bg);
   overflow-wrap: anywhere;
 }
+
+.install-card__lead { margin: -12px 0 20px; color: var(--text-secondary); }
+
+/* 必要元件：白底列在灰卡片上，載點按鈕在窄螢幕換到說明下方 */
+.component-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.component {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 16px 20px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+.component__body { flex: 1 1 240px; min-width: 0; }
+.component__name { margin-bottom: 4px; font-size: 1.0625rem; overflow-wrap: anywhere; }
+.component__meta { color: var(--text-secondary); font-size: 0.9375rem; }
+.component__link { flex: none; }
 
 /* 安裝步驟整張卡片可展開，展開鈕沿用版本歷程的「+」轉成「×」 */
 .install-steps > summary {

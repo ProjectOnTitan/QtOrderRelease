@@ -13,16 +13,14 @@
     "repositoryUrl": "https://github.com/ProjectOnTitan/QtOrderRelease",
     "requirements": [
       "Windows 10 或 Windows 11（64 位元）",
-      ".NET Framework 4.8（安裝程式會檢查，未安裝時提供下載連結）",
-      "安裝時需要系統管理員權限，用來註冊券商下單元件",
+      "安裝時需要系統管理員權限，用來註冊券商下單元件與安裝必要元件",
       "穩定的網路連線"
     ],
     "brokerRequirements": [
       {
         "broker": "台新證券",
         "items": [
-          "交易憑證（.pfx）",
-          "Node.js 16 以上（查詢昨收、庫存與餘額時需要；僅台新安裝程式檢查版本）"
+          "交易憑證（.pfx）"
         ]
       },
       {
@@ -38,6 +36,35 @@
           "已開通 API 下單權限並簽署相關同意書",
           "已完成群益 API 連線測試"
         ]
+      }
+    ],
+    "components": [
+      {
+        "name": ".NET Framework 4.8",
+        "purpose": "QtOrder 的執行環境；Windows 10 1903 以後與 Windows 11 已內建",
+        "brokers": [
+          "taishin",
+          "zf-mega",
+          "capital"
+        ],
+        "url": "https://dotnet.microsoft.com/download/dotnet-framework/net48"
+      },
+      {
+        "name": "Microsoft Visual C++ v14 可轉散發套件（x64）",
+        "purpose": "券商下單與查詢元件需要的 C++ 執行階段",
+        "brokers": [
+          "taishin",
+          "zf-mega"
+        ],
+        "url": "https://aka.ms/vc14/vc_redist.x64.exe"
+      },
+      {
+        "name": "Node.js 16 以上（建議 LTS 版）",
+        "purpose": "查詢昨收、庫存與交割戶餘額",
+        "brokers": [
+          "taishin"
+        ],
+        "url": "https://nodejs.org/"
       }
     ]
   },

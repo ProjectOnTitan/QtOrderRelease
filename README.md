@@ -69,6 +69,7 @@ CI 會擋下這些錯誤：版本號帶預覽標記、重複或沒有隨發布�
 | --- | --- |
 | `minimumVersions` | 各券商的最低支援版本，例如 `{ "capital": "1.6.0" }`；還沒有任何版本的券商不能設定 |
 | `product.requirements`、`product.brokerRequirements` | 系統需求與各券商的前置條件 |
+| `product.components` | 各券商需要另外安裝的元件、適用券商與官方載點（只接受 https）；QtOrder 安裝程式缺少時會自動安裝，清單要與 QtOrder 的 `deploy/prerequisites.ps1` 一致（QtOrder ADR-0047） |
 | `releases[].version` | 純數字三段（例如 `1.7.1`），不得帶 `-preview` 等標記，見 [ADR-0001](docs/adr/0001-promotion-based-versioning.md) |
 | `releases[].channel` | `preview` 或 `stable`，晉升時改變 |
 | `releases[].publishedAt`、`promotedAt` | 第一次發布、晉升為穩定版的時間 |
