@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { BROKERS, buildUpdateManifest, minInstallerVersion } from '../assets/js/release-model.js';
 import {
-  parseReleaseNotes, planRelease, promoteRelease, publishRelease, releaseBaselines, taipeiNow,
+  applyComponents, parseReleaseNotes, planRelease, promoteRelease, publishRelease, releaseBaselines, taipeiNow,
 } from '../scripts/release-record.js';
 import { validateReleaseData } from '../scripts/validate.js';
 
@@ -63,6 +63,40 @@ describe('版本說明', () => {
       ['---\nsummary: x\nrequiresInstaller: true\n---\n## 修正\n- x', /升級須知/],
     ];
     for (const [markdown, expected] of cases) assert.throws(() => parseReleaseNotes(markdown), expected, markdown);
+  });
+});
+
+describe('必要元件', () => {
+  // QtOrder 的 deploy/prerequisites.ps1 -Action Export 輸出的形狀
+  const exported = [
+    { name: '.NET Framework 4.8', purpose: '執行環境', brokers: ['taishin', 'zf-mega', 'capital'], url: 'https://example.test/net48' },
+    { name: 'Node.js 16 以上', purpose: '查詢餘額', brokers: ['taishin'], url: 'https://example.test/node' },
+  ];
+
+  it('以匯出的清單取代，內容相同時不動發布紀錄', () => {
+    const updated = applyComponents(mock, exported, { at: day(5) });
+    assert.deepEqual(updated.product.components, exported);
+    assert.equal(updated.generatedAt, day(5));
+    assert.equal(updated.product.name, mock.product.name);
+    assert.deepEqual(validateReleaseData(updated, schema), []);
+    assert.equal(applyComponents(updated, structuredClone(exported), { at: day(6) }), updated);
+  });
+
+  it('發布時一併更新，與這次的安裝程式一致', () => {
+    const data = publishRelease(mock, {
+      version: '1.6.0', channel: 'stable', sourceCommit: commitA, brokers: BROKERS, notesMarkdown: notes(),
+      assetsJson: assetsJson('1.6.0'), baseUrl: baseUrl('1.6.0'), components: exported, at: day(4),
+    });
+    assert.deepEqual(data.product.components, exported);
+    assert.equal(data.generatedAt, day(4));
+    assert.deepEqual(validateReleaseData(data, schema), []);
+    assert.deepEqual(firstRelease().product.components, mock.product.components);
+  });
+
+  it('拒絕空清單與不合格式的項目', () => {
+    assert.throws(() => applyComponents(mock, []), /非空的陣列/);
+    const bad = applyComponents(mock, [{ name: 'x', brokers: ['mega'], url: 'http://example.test' }], { at: day(5) });
+    assert.ok(validateReleaseData(bad, schema).length > 0);
   });
 });
 

@@ -5,12 +5,16 @@
 //   node scripts/release-record.js baselines --version <v>
 //        QtOrder 打包前判斷各家有沒有異動，輸出 JSON：{ versionPublished, brokers: { <券商>: { version, sourceCommit } | null } }
 //   node scripts/release-record.js plan --action publish --version <v> --channel preview|stable --source-commit <sha> --brokers <券商>
+//        [--components <components.json>]
 //        建置發布前檢查，輸出 JSON：{ action, version, channel, brokers, previous: { <券商>: { version, sourceCommit } | null } }
 //   node scripts/release-record.js plan --action promote --version <v>
 //        晉升前檢查，輸出 JSON：{ action, version, brokers }
 //   node scripts/release-record.js publish --version <v> --channel preview|stable --source-commit <sha> --brokers <券商>
-//        --notes <版本說明.md> --assets <assets.json> --base-url <下載網址前綴> [--at <時間>]
+//        --notes <版本說明.md> --assets <assets.json> --base-url <下載網址前綴> [--components <components.json>] [--at <時間>]
 //   node scripts/release-record.js promote --version <v> [--at <時間>]
+//   node scripts/release-record.js components --components <components.json> [--at <時間>]
+//        只更新發布中心的「必要元件」，例如官方載點變了、還沒有新版本要發布時
+// components.json 是 QtOrder 的 deploy/prerequisites.ps1 -Action Export 的輸出（QtOrder ADR-0049），寫入 product.components。
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -209,11 +213,21 @@ function addRelease(base, { version, channel, sourceCommit, at, summary, require
   });
 }
 
+/* 以 QtOrder 匯出的清單取代發布中心的「必要元件」（product.components），欄位由 schema 驗證。
+ * 內容相同時回傳原本的紀錄，不動 generatedAt。 */
+export function applyComponents(data, components, { at = taipeiNow() } = {}) {
+  if (!Array.isArray(components) || !components.length) fail('必要元件清單必須是非空的陣列');
+  if (JSON.stringify(data.product?.components ?? null) === JSON.stringify(components)) return data;
+  return { ...data, generatedAt: at, product: { ...data.product, components } };
+}
+
 /* 新增一個版本，只含勾選的券商。assets.json 由 QtOrder 的 deploy/package-all.ps1 產生：
- * { version, assets: [{ broker, name, kind, size, sha256 }] }，可能含沒勾選的券商，這裡只取勾選的。 */
-export function publishRelease(data, { version, channel, sourceCommit, brokers, notesMarkdown, assetsJson, baseUrl, at = taipeiNow() }) {
+ * { version, assets: [{ broker, name, kind, size, sha256 }] }，可能含沒勾選的券商，這裡只取勾選的。
+ * 有 components 時一併更新必要元件，與這次發布的安裝程式一致。 */
+export function publishRelease(data, { version, channel, sourceCommit, brokers, notesMarkdown, assetsJson, baseUrl, components, at = taipeiNow() }) {
   const selected = checkPublishArgs({ version, channel, sourceCommit, brokers });
-  const base = startingPoint(data);
+  const start = startingPoint(data);
+  const base = components === undefined ? start : applyComponents(start, components, { at });
   checkPublishable(base, { version, channel, brokers: selected });
   if (assetsJson.version !== version) fail(`assets.json 的版本 ${assetsJson.version} 與 ${version} 不符`);
   if (!/^https:\/\//.test(baseUrl ?? '')) fail(`下載網址前綴必須是 https：${baseUrl}`);
@@ -268,6 +282,8 @@ function main() {
   const [command, ...rest] = process.argv.slice(2);
   const options = parseOptions(rest);
   const data = readJson(dataPath);
+  const schema = readJson(join(root, 'data/releases.schema.json'));
+  const components = options.components === undefined ? undefined : readJson(options.components);
   const common = {
     version: options.version,
     channel: options.channel,
@@ -281,7 +297,13 @@ function main() {
     console.log(JSON.stringify(releaseBaselines(data, common)));
     return;
   } else if (command === 'plan') {
-    console.log(JSON.stringify(planRelease(data, { ...common, action: options.action })));
+    const plan = planRelease(data, { ...common, action: options.action });
+    // dry run 也要擋下格式不對的必要元件清單，不要等到寫入發布紀錄才失敗
+    if (components !== undefined) {
+      const errors = validateReleaseData(applyComponents(data, components, common), schema);
+      if (errors.length) fail(`必要元件清單不符發布紀錄的格式：${errors.join('；')}`);
+    }
+    console.log(JSON.stringify(plan));
     return;
   } else if (command === 'publish') {
     next = publishRelease(data, {
@@ -289,17 +311,25 @@ function main() {
       notesMarkdown: readFileSync(options.notes, 'utf8'),
       assetsJson: readJson(options.assets),
       baseUrl: options['base-url'],
+      components,
     });
   } else if (command === 'promote') {
     next = promoteRelease(data, common);
+  } else if (command === 'components') {
+    if (components === undefined) fail('用法：release-record.js components --components <components.json>');
+    next = applyComponents(data, components, common);
+    if (next === data) {
+      console.log('必要元件沒有變動，不更新 data/releases.json');
+      return;
+    }
   } else {
-    fail('用法：release-record.js baselines|plan|publish|promote --version <v> …（見檔案開頭說明）');
+    fail('用法：release-record.js baselines|plan|publish|promote|components …（見檔案開頭說明）');
   }
 
-  const errors = validateReleaseData(next, readJson(join(root, 'data/releases.schema.json')));
+  const errors = validateReleaseData(next, schema);
   if (errors.length) fail(`發布紀錄驗證失敗：${errors.join('；')}`);
   writeFileSync(dataPath, `${JSON.stringify(next, null, 2)}\n`);
-  console.log(`已更新 data/releases.json：${command} v${options.version}`);
+  console.log(`已更新 data/releases.json：${command}${options.version ? ` v${options.version}` : ''}`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

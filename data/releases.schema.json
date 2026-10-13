@@ -88,7 +88,7 @@
         },
         "components": {
           "type": "array",
-          "description": "各券商需要另外安裝的元件，安裝程式缺少時會自動安裝；與 QtOrder 的 deploy/prerequisites.ps1 一致。",
+          "description": "各券商需要另外安裝的元件，安裝程式缺少時會自動安裝；由 QtOrder 的 deploy/prerequisites.ps1 -Action Export 匯出後寫入，不手動編輯。",
           "items": {
             "type": "object",
             "required": [
