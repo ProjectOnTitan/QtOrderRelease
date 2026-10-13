@@ -161,7 +161,13 @@
           <div class="install-card" id="components-card" hidden>
             <h3>必要元件</h3>
             <p class="install-card__lead">各券商的安裝程式會檢查該券商需要的元件，缺少時自動從官方網站下載安裝。自動安裝失敗時，請從下方的官方載點手動安裝，再開啟 QtOrder。</p>
-            <ul class="component-list" id="components" role="list"></ul>
+            <div class="component-table-wrap">
+              <table class="component-table">
+                <caption class="visually-hidden">各券商需要的元件與官方載點</caption>
+                <thead id="components-head"></thead>
+                <tbody id="components"></tbody>
+              </table>
+            </div>
           </div>
           <details class="install-card install-steps">
             <summary>

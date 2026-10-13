@@ -1020,28 +1020,100 @@ main:focus { outline: none; }
 
 .install-card__lead { margin: -12px 0 20px; color: var(--text-secondary); }
 
-/* 必要元件：白底列在灰卡片上，載點按鈕在窄螢幕換到說明下方 */
-.component-list {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.component {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px 20px;
-  padding: 16px 20px;
+/* 必要元件：元件 × 券商的表格，白底放在灰卡片上；欄位太窄時表格內水平捲動，不撐開頁面 */
+.component-table-wrap {
+  overflow-x: auto;
   background: var(--bg);
   border-radius: var(--radius-sm);
 }
-.component__body { flex: 1 1 240px; min-width: 0; }
-.component__name { margin-bottom: 4px; font-size: 1.0625rem; overflow-wrap: anywhere; }
-.component__meta { color: var(--text-secondary); font-size: 0.9375rem; }
-.component__link { flex: none; }
+.component-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+.component-table th,
+.component-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--divider);
+  text-align: center;
+  vertical-align: middle;
+}
+.component-table tbody tr:last-child > * { border-bottom: 0; }
+.component-table thead th {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.component-table th:first-child { padding-left: 16px; text-align: left; }
+.component-table th:last-child,
+.component-table td:last-child { padding-right: 16px; text-align: right; }
+/* break-word 只在整個字放不下時才斷，表格不會為了單字把名稱欄壓得太窄 */
+.component-table__name { font-weight: 600; overflow-wrap: break-word; }
+.component-table__name > span:first-child { margin-right: 4px; }
+.component-table__mark { width: 4.5em; }
+.component-table__mark .icon { color: var(--stable); vertical-align: middle; }
+.component-table__none { color: var(--text-secondary); }
+.component-table__short { display: none; }
+.component-table__link .btn { white-space: nowrap; }
+
+/* 窄螢幕：券商欄改用簡稱、縮小欄距，載點只留圖示（完整文字保留給螢幕閱讀器） */
+@media (max-width: 734px) {
+  .component-table th,
+  .component-table td { padding-inline: 4px; }
+  .component-table th:first-child { padding-left: 12px; }
+  .component-table th:last-child,
+  .component-table td:last-child { padding-right: 12px; }
+  .component-table__mark { width: 2.25em; }
+  .component-table__short { display: inline; }
+  .component-table__full,
+  .component-table__link-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .component-table__link .btn { padding-inline: 10px; }
+}
+
+/* ---------- 說明提示 ---------- */
+
+.tip { display: inline-block; vertical-align: middle; }
+/* 圖示 16px，點選範圍 28px（WCAG 2.5.8 至少 24px） */
+.tip__button {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: -6px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  vertical-align: middle;
+}
+.tip__button:hover,
+.tip__button[aria-describedby]:focus-visible { color: var(--link); background: var(--fill); }
+.tip__bubble {
+  position: fixed;
+  z-index: 30;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--code-bg);
+  color: var(--code-text);
+  box-shadow: var(--shadow-menu);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+}
 
 /* 安裝步驟整張卡片可展開，展開鈕沿用版本歷程的「+」轉成「×」 */
 .install-steps > summary {

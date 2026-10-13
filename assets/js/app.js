@@ -523,21 +523,108 @@ function renderInstall(product) {
   renderComponents(product);
 }
 
-// 必要元件與 QtOrder 安裝程式自動安裝的清單一致；官方載點只接受 http(s)，不合格就不顯示連結。
+// 必要元件與 QtOrder 安裝程式自動安裝的清單一致，以元件 × 券商的表格呈現；用途收在元件名稱旁的說明提示。
+// 官方載點只接受 http(s)，不合格就不顯示連結。
 function renderComponents(product) {
   const components = Array.isArray(product?.components) ? product.components : [];
   $('#components-card').hidden = components.length === 0;
-  $('#components').replaceChildren(...components.map(({ name, purpose, brokers, url }) => {
+
+  // 窄螢幕欄寬不夠，券商欄改顯示簡稱；完整名稱保留給螢幕閱讀器
+  $('#components-head').replaceChildren(el('tr', {},
+    el('th', { scope: 'col' }, '元件'),
+    BROKERS.map((broker) => el('th', { scope: 'col', class: 'component-table__broker' },
+      el('span', { class: 'component-table__full' }, BROKER_NAMES[broker]),
+      el('span', { class: 'component-table__short', 'aria-hidden': 'true' }, BROKER_NAMES[broker].replace(/證券$/, '')))),
+    el('th', { scope: 'col' }, el('span', { class: 'visually-hidden' }, '官方載點'))));
+
+  $('#components').replaceChildren(...components.map(({ name, purpose, brokers, url }, index) => {
     const href = safeUrl(url);
-    const known = (Array.isArray(brokers) ? brokers : []).filter((broker) => BROKER_NAMES[broker]);
-    return el('li', { class: 'component' },
-      el('div', { class: 'component__body' },
-        el('h4', { class: 'component__name' }, name),
-        purpose && el('p', { class: 'component__meta' }, purpose),
-        known.length > 0 && el('p', { class: 'component__meta' }, `適用：${brokerNames(known)}`)),
-      href && el('a', { class: 'btn btn--secondary btn--sm component__link', href },
-        '官方下載', el('span', { class: 'visually-hidden' }, `：${name}`)));
+    const needed = Array.isArray(brokers) ? brokers : [];
+    return el('tr', {},
+      el('th', { scope: 'row', class: 'component-table__name' },
+        el('span', {}, name),
+        purpose && infoTip(`component-tip-${index}`, `${name}的用途`, purpose)),
+      BROKERS.map((broker) => el('td', { class: 'component-table__mark' }, needed.includes(broker)
+        ? [icon('i-check', 'icon icon--sm'), el('span', { class: 'visually-hidden' }, '需要')]
+        : [el('span', { class: 'component-table__none', 'aria-hidden': 'true' }, '—'), el('span', { class: 'visually-hidden' }, '不需要')])),
+      el('td', { class: 'component-table__link' }, href && el('a', { class: 'btn btn--secondary btn--sm', href },
+        icon('i-download', 'icon icon--sm'),
+        el('span', { class: 'component-table__link-text' }, '官方下載'),
+        el('span', { class: 'visually-hidden' }, `：${name}`))));
   }));
+}
+
+/* ---------- 說明提示 ---------- */
+
+// 「i」按鈕：滑鼠移入或鍵盤聚焦時顯示，點選後固定顯示到再點一次、按 Esc 或點選其他地方。
+// 提示以 aria-describedby 連到按鈕，螢幕閱讀器聚焦時就會念出；提示本身可以移入（WCAG 1.4.13）。
+const tips = { open: null, pinned: false, hideTimer: 0 };
+
+function infoTip(id, label, text) {
+  const bubble = el('span', { class: 'tip__bubble', role: 'tooltip', id, hidden: true }, text);
+  const button = el('button', { class: 'tip__button', type: 'button', 'aria-label': label, 'aria-describedby': id }, icon('i-info', 'icon icon--sm'));
+  const tip = el('span', { class: 'tip' }, button, bubble);
+
+  tip.addEventListener('mouseenter', () => showTip(tip));
+  tip.addEventListener('mouseleave', () => { if (!tips.pinned) scheduleHideTip(); });
+  button.addEventListener('focus', () => showTip(tip));
+  // 焦點離開就收起；滑鼠還停在上面時留著
+  button.addEventListener('blur', () => { if (tips.open === tip && !tip.matches(':hover')) hideTip(); });
+  button.addEventListener('click', () => {
+    const pinned = tips.open === tip && tips.pinned;
+    if (pinned) hideTip();
+    else { showTip(tip); tips.pinned = true; }
+  });
+  return tip;
+}
+
+function showTip(tip) {
+  clearTimeout(tips.hideTimer);
+  if (tips.open && tips.open !== tip) hideTip();
+  tips.open = tip;
+  const bubble = tip.querySelector('.tip__bubble');
+  bubble.hidden = false;
+  positionTip(tip);
+}
+
+// 移到提示上的途中會短暫離開按鈕，稍等一下再收起
+function scheduleHideTip() {
+  clearTimeout(tips.hideTimer);
+  tips.hideTimer = setTimeout(hideTip, 150);
+}
+
+function hideTip() {
+  clearTimeout(tips.hideTimer);
+  if (tips.open) tips.open.querySelector('.tip__bubble').hidden = true;
+  tips.open = null;
+  tips.pinned = false;
+}
+
+// 提示以 fixed 定位在按鈕上方（上方空間不夠時改到下方），左右不超出視窗，也不被表格的捲動區塊裁掉
+function positionTip(tip) {
+  const button = tip.querySelector('.tip__button').getBoundingClientRect();
+  const bubble = tip.querySelector('.tip__bubble');
+  const margin = 12;
+  const gap = 8;
+  const { width, height } = bubble.getBoundingClientRect();
+  const headerBottom = $('.localnav')?.getBoundingClientRect().bottom ?? 0;
+  const above = button.top - gap - height >= headerBottom + margin;
+  const left = Math.min(Math.max(button.left + button.width / 2 - width / 2, margin), document.documentElement.clientWidth - width - margin);
+  bubble.style.left = `${Math.round(left)}px`;
+  bubble.style.top = `${Math.round(above ? button.top - gap - height : button.bottom + gap)}px`;
+}
+
+function initTips() {
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && tips.open) hideTip();
+  });
+  document.addEventListener('click', (event) => {
+    if (tips.open && !tips.open.contains(event.target)) hideTip();
+  });
+  // fixed 定位不會跟著頁面捲動，捲動或縮放時重新計算位置
+  const reposition = () => { if (tips.open) positionTip(tips.open); };
+  window.addEventListener('scroll', reposition, { passive: true, capture: true });
+  window.addEventListener('resize', reposition);
 }
 
 function renderMeta(data) {
@@ -626,6 +713,7 @@ async function load() {
 function init() {
   initLocalNav();
   initBrokerSwitch();
+  initTips();
 
   for (const button of document.querySelectorAll('[data-filter]')) {
     button.addEventListener('click', () => {
