@@ -8,7 +8,8 @@ import { validateReleaseData } from '../scripts/validate.js';
 
 const readJson = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const schema = readJson('data/releases.schema.json');
-const mock = readJson('data/releases.json');
+// 首發前的模擬資料；data/releases.json 首發後是正式紀錄，不能拿來當測試資料
+const mock = readJson('tests/fixtures/mock-releases.json');
 
 function release(version, channel, { publishedAt, promotedAt, withdrawn, requiresInstaller, brokers = BROKERS } = {}) {
   const asset = (kind, name) => ({
@@ -140,6 +141,10 @@ describe('更新清單', () => {
 describe('發布紀錄驗證', () => {
   it('模擬資料通過完整驗證', () => {
     assert.deepEqual(validateReleaseData(mock, schema), []);
+  });
+
+  it('正式的發布紀錄通過完整驗證', () => {
+    assert.deepEqual(validateReleaseData(readJson('data/releases.json'), schema), []);
   });
 
   it('拒絕預覽標記與不認得的檔案種類', () => {

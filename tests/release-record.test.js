@@ -9,7 +9,8 @@ import { validateReleaseData } from '../scripts/validate.js';
 
 const readJson = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const schema = readJson('data/releases.schema.json');
-const mock = readJson('data/releases.json');
+// 首發前的模擬資料；data/releases.json 首發後是正式紀錄，不能拿來當測試資料
+const mock = readJson('tests/fixtures/mock-releases.json');
 
 const commitA = 'a'.repeat(40);
 const commitB = 'b'.repeat(40);

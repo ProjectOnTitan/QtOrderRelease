@@ -3,8 +3,8 @@
 QtOrder 的發布中心：以 GitHub Pages 提供各版本的版本說明、下載檔案與 SHA-256，並產生 QtOrder 啟動器讀取的更新清單。
 用語（預覽版、穩定版、晉升、撤回、最低支援版本…）以 [CONTEXT.md](CONTEXT.md) 為準；為什麼這樣設計見 [docs/adr/](docs/adr/)。
 
-> 目前 `data/releases.json` 是模擬資料（`"mock": true`）：頁面頂端顯示提示，部署時自動加上 `noindex`。
-> 第一個正式版本（首發）發布時，`scripts/release-record.js` 會清掉模擬資料。QtOrder 的打包流程已不再把 GCP 金鑰放進套件（QtOrder ADR-0034），並在發布前掃描機密。
+> `data/releases.json` 自 2026-10-13 首發 v1.6.0 起是正式的發布紀錄，不要拿來當測試資料或手動改成模擬資料。
+> 測試用的模擬資料在 `tests/fixtures/mock-releases.json`（`"mock": true` 時頁面頂端顯示提示，部署時自動加上 `noindex`）。
 
 ## 結構
 
@@ -17,7 +17,7 @@ data/releases.json            發布紀錄，唯一的資料來源
 data/releases.schema.json     發布紀錄的 JSON Schema
 scripts/build-site.js         驗證發布紀錄，輸出網站與更新清單（_site/update.json）
 scripts/release-record.js     QtOrder 的 CI 與發布 workflow 呼叫：各券商的比較基準、發布與晉升前的檢查、寫入新版本、晉升
-tests/                        發布規則與發布紀錄腳本的測試
+tests/                        發布規則與發布紀錄腳本的測試；模擬資料在 tests/fixtures/
 .github/workflows/pages.yml   PR 時驗證；合併到 main 後建置並部署 Pages
 ```
 
