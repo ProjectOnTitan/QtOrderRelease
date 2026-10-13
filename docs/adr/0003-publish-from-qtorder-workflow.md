@@ -1,5 +1,7 @@
 # 發布與晉升由 QtOrder 的發布 workflow 直接寫入，撤回與最低支援版本仍經 PR
 
+Status: Accepted（在 `release/*` 分支觸發、晉升比對 `release/stable` 的 HEAD、首發只能在 `release/stable` → QtOrder ADR-0043、本 repo ADR-0005；由 workflow 直接寫入、撤回與最低支援版本經 PR 不變）
+
 ADR-0002 原本規定任何發布、晉升、撤回都經本 repo 的 PR 審核才生效。QtOrder 改為在 `release/preview`、`release/stable` 手動觸發發布（QtOrder ADR-0033）之後，手動觸發本身就是人工把關，版本說明也已在 QtOrder 的 PR 審過；再多一道合併只會拖慢緊急修正。因此發布預覽版、晉升、首發與緊急修正由 QtOrder 的 workflow 以組織擁有的 GitHub App 直接 commit 到 `main`，寫入前以 `scripts/release-record.js` 跑與 PR 相同的驗證；撤回與調整最低支援版本很少發生、又需要判斷，維持手動發 PR。本則取代 ADR-0002 中「發布、晉升都經 PR」的部分，其餘不變。
 
 ## Considered Options
