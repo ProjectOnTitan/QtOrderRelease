@@ -269,7 +269,6 @@ main:focus { outline: none; }
   color: var(--text);
   text-decoration: none;
 }
-.brand img { border-radius: 6px; }
 .brand__name {
   font-size: 1.3125rem;
   font-weight: 600;
