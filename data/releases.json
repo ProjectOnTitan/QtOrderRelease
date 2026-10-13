@@ -2,7 +2,7 @@
   "$schema": "./releases.schema.json",
   "schemaVersion": 3,
   "mock": false,
-  "generatedAt": "2026-10-13T20:55:00+08:00",
+  "generatedAt": "2026-10-13T21:15:20+08:00",
   "minimumVersions": {
     "taishin": "1.6.0",
     "zf-mega": "1.6.0",
@@ -59,8 +59,8 @@
         "url": "https://aka.ms/vc14/vc_redist.x64.exe"
       },
       {
-        "name": "Node.js 16 以上（建議 LTS 版）",
-        "purpose": "查詢昨收、庫存與交割戶餘額",
+        "name": "Node.js 16 以上",
+        "purpose": "查詢昨收、庫存與交割戶餘額；安裝程式自動安裝時裝 LTS 版",
         "brokers": [
           "taishin"
         ],
