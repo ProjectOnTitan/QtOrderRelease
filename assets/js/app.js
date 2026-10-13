@@ -40,7 +40,9 @@ const dateTimeFmt = new Intl.DateTimeFormat('zh-TW', {
 const relativeFmt = new Intl.RelativeTimeFormat('zh-TW', { numeric: 'auto' });
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-const state = { releases: [], minimums: {}, broker: BROKERS[0], filter: 'all', visible: PAGE_SIZE, open: new Set() };
+const state = {
+  releases: [], minimums: {}, broker: BROKERS[0], filter: 'all', visible: PAGE_SIZE, open: new Set(), downloads: new Set(),
+};
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -359,10 +361,7 @@ function releaseItem(release) {
   const id = releaseId(release);
   const withdrawn = isWithdrawn(release);
   const open = state.open.has(release.version);
-  // 展開的內容有高度上限、超過時在卡片內捲動（site.css）；可聚焦，鍵盤才捲得動沒有連結的版本說明
-  const panel = el('div', {
-    class: 'release__panel', id: `${id}-panel`, hidden: !open, tabindex: '0', role: 'region', 'aria-label': `v${release.version} 版本說明與下載檔案`,
-  }, releaseBody(release));
+  const panel = el('div', { class: 'release__panel', id: `${id}-panel`, hidden: !open }, releaseBody(release));
   const toggle = el('button', {
     class: 'release__toggle', type: 'button', id: `${id}-toggle`, 'aria-expanded': String(open), 'aria-controls': panel.id,
   },
@@ -407,50 +406,88 @@ function directStableLabel(release) {
   return rest.length ? `直接發布為穩定版（${brokerNames(first)}首發，${brokerNames(rest)}緊急修正）` : '首次發布為穩定版';
 }
 
-// 這個版本走過哪些通道：預覽版 → 晉升為穩定版，或首發、緊急修正直接發布為穩定版。
-function releaseTimeline(release) {
-  const steps = [];
-  if (release.channel === 'stable' && !release.promotedAt) {
-    steps.push(`${formatDate(release.publishedAt)} ${directStableLabel(release)}`);
-  } else {
-    steps.push(`${formatDate(release.publishedAt)} 發布於預覽版`);
-    if (release.promotedAt) steps.push(`${formatDate(release.promotedAt)} 晉升為穩定版`);
-  }
-  if (release.withdrawn) steps.push(`${formatDate(release.withdrawn.at)} 撤回`);
-  // 只有一步時，日期與通道標題列都已經寫了
-  if (steps.length < 2) return null;
-  return el('p', { class: 'release__timeline' }, steps.join(' → '));
+// 展開的內容分成三塊：版本資訊、版本說明（有高度上限，超過時捲動）、下載檔案（預設收合）。撤回的版本沒有下載檔案。
+function releaseBody(release) {
+  return [
+    releaseInfo(release),
+    releaseNotes(release),
+    !isWithdrawn(release) && releaseDownloads(release),
+  ];
 }
 
-function releaseBody(release) {
-  const groups = NOTE_TYPES.filter(({ key }) => Array.isArray(release.notes?.[key]) && release.notes[key].length);
-  const notes = groups.length
-    ? el('div', { class: 'notes' }, groups.map(({ key, label }) => el('section', { class: `note-group note-group--${key}` },
-      el('h4', { class: 'note-group__title' }, key === 'upgradeNotes' && icon('i-alert', 'icon icon--sm'), label),
-      el('ul', { class: 'note-list' }, release.notes[key].map((item) => el('li', {}, richText(item)))))))
-    : el('p', { class: 'section-desc' }, '此版本沒有提供版本說明。');
+const releaseBlock = (title, ...children) => el('section', { class: 'release__block' },
+  el('h4', { class: 'panel-subtitle' }, title), ...children);
 
+// 這個版本走過哪些通道（預覽版 → 晉升為穩定版，或首發、緊急修正直接發布為穩定版）、包含的券商與更新方式。
+function releaseInfo(release) {
+  const rows = [];
+  if (release.channel === 'stable' && !release.promotedAt) {
+    rows.push(['發布', `${formatDate(release.publishedAt)}　${directStableLabel(release)}`]);
+  } else {
+    rows.push(['發布', `${formatDate(release.publishedAt)}　發布於預覽版`]);
+    if (release.promotedAt) rows.push(['晉升', `${formatDate(release.promotedAt)}　晉升為穩定版`]);
+  }
+  rows.push(['券商', brokerNames(brokersOf(release))]);
   if (isWithdrawn(release)) {
-    return [
-      releaseTimeline(release),
-      el('div', { class: 'callout callout--danger' },
-        icon('i-alert'),
-        el('div', {},
-          el('p', { class: 'callout__title' }, '此版本已撤回，不再提供下載'),
-          el('p', {}, release.withdrawn.reason))),
-      notes,
-    ];
+    rows.push(['撤回', formatDate(release.withdrawn.at)]);
+  } else if (release.requiresInstaller) {
+    rows.push(['更新方式', '需要重新執行安裝程式，啟動器不會自動更新到這一版']);
+  } else {
+    rows.push(['更新方式', release.channel === 'preview' ? '發布通道設為預覽版的 QtOrder 會由啟動器自動更新' : '已安裝的 QtOrder 會由啟動器自動更新']);
   }
 
-  // 需重新安裝已由標題列的標籤與升級須知說明，這裡不再重複
-  return [
-    releaseTimeline(release),
-    notes,
-    el('div', {},
-      el('h4', { class: 'panel-subtitle' }, '下載檔案'),
-      el('p', { class: 'asset-note' }, ASSET_NOTE),
-      el('ul', { class: 'asset-list', role: 'list' }, release.assets.map(assetItem))),
-  ];
+  return releaseBlock('版本資訊',
+    el('dl', { class: 'release-info' }, rows.flatMap(([term, value]) => [el('dt', {}, term), el('dd', {}, value)])),
+    isWithdrawn(release) && el('div', { class: 'callout callout--danger' },
+      icon('i-alert'),
+      el('div', {},
+        el('p', { class: 'callout__title' }, '此版本已撤回，不再提供下載'),
+        el('p', {}, release.withdrawn.reason))));
+}
+
+// 版本說明有高度上限，超過時在區塊內捲動；可以聚焦，鍵盤才捲得動沒有連結的文字
+function releaseNotes(release) {
+  const groups = NOTE_TYPES.filter(({ key }) => Array.isArray(release.notes?.[key]) && release.notes[key].length);
+  if (!groups.length) return releaseBlock('版本說明', el('p', { class: 'section-desc' }, '此版本沒有提供版本說明。'));
+
+  const scroller = el('div', { class: 'release__scroll', tabindex: '0', role: 'region', 'aria-label': `v${release.version} 版本說明` },
+    el('div', { class: 'notes' }, groups.map(({ key, label }) => el('section', { class: `note-group note-group--${key}` },
+      el('h5', { class: 'note-group__title' }, key === 'upgradeNotes' && icon('i-alert', 'icon icon--sm'), label),
+      el('ul', { class: 'note-list' }, release.notes[key].map((item) => el('li', {}, richText(item))))))));
+  scrollObserver.observe(scroller);
+  return releaseBlock('版本說明', scroller);
+}
+
+// 內容超過高度上限時才顯示底部的漸層提示；收合中的版本展開後尺寸改變，也會重新判斷
+const scrollObserver = new ResizeObserver((entries) => {
+  for (const { target } of entries) target.classList.toggle('is-scrollable', target.scrollHeight > target.clientHeight + 1);
+});
+
+// 下載檔案預設收合；展開狀態記在 state，重新渲染（切換篩選、載入更多）後維持
+function releaseDownloads(release) {
+  const id = releaseId(release);
+  const open = state.downloads.has(release.version);
+  const list = el('ul', { class: 'asset-list', role: 'list', id: `${id}-assets`, hidden: !open }, release.assets.map(assetItem));
+  const toggle = el('button', {
+    class: 'downloads__toggle', type: 'button', 'aria-expanded': String(open), 'aria-controls': list.id,
+  },
+  icon('i-chevron-right', 'icon icon--sm downloads__indicator'),
+  el('span', {}, '下載檔案'),
+  el('span', { class: 'downloads__count' }, `${release.assets.length} 個檔案`));
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    list.hidden = expanded;
+    if (expanded) state.downloads.delete(release.version);
+    else state.downloads.add(release.version);
+  });
+
+  return el('section', { class: 'release__block release__block--downloads' },
+    el('div', { class: 'downloads__head' },
+      el('h4', { class: 'panel-subtitle downloads__heading' }, toggle),
+      infoTip(`${id}-assets-tip`, '下載檔案的說明', ASSET_NOTE)),
+    list);
 }
 
 function assetItem(asset) {

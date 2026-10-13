@@ -812,41 +812,73 @@ main:focus { outline: none; }
 
 .release__summary { margin-top: -6px; padding: 0 20px 20px; }
 
-/* 展開的內容有高度上限，超過時在卡片內捲動，頁面不會因為版本說明很長而跟著變長 */
+/* 展開的內容分成版本資訊、版本說明、下載檔案三塊，以分隔線隔開 */
 .release__panel {
-  --panel-pad-y: 24px;
   display: grid;
-  align-content: start;
-  gap: 24px;
-  max-height: min(560px, 70vh);
-  overflow-y: auto;
-  padding: var(--panel-pad-y) 20px;
+  padding: 0 20px;
   border-top: 1px solid var(--divider);
-  border-radius: 0 0 var(--radius) var(--radius);
 }
-/* 底部漸層提示下面還有內容：黏在捲動區底部（黏貼範圍會內縮 padding，用負值抵掉）；
- * 捲到底時 margin 抵掉格線間距，漸層落在最後的空白處 */
-.release__panel::after {
-  content: "";
-  position: sticky;
-  bottom: calc(-1 * var(--panel-pad-y));
-  height: 40px;
-  margin-top: -24px;
-  background: linear-gradient(transparent, var(--bg));
-  pointer-events: none;
-}
-/* 可捲動區塊要能用鍵盤聚焦捲動；焦點框畫在內側，避免被卡片圓角切掉 */
-.release__panel:focus-visible { outline-offset: -2px; }
+.release__block { display: grid; gap: 12px; padding: 20px 0; }
+.release__block + .release__block { border-top: 1px solid var(--divider); }
 
 @media (min-width: 735px) {
   .release__toggle { padding-inline: 28px; }
   .release__summary { padding-inline: 28px; }
-  .release__panel { --panel-pad-y: 28px; padding: var(--panel-pad-y) 28px; }
+  .release__panel { padding-inline: 28px; }
 }
 
 .release--skeleton .release__card { padding: 26px 20px; }
 
-.release__timeline { color: var(--text-secondary); font-size: 0.875rem; }
+/* 版本資訊：欄名與內容兩欄 */
+.release-info {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.release-info dt { color: var(--text-secondary); }
+.release-info dd { margin: 0; }
+
+/* 版本說明有高度上限，超過時在區塊內捲動，頁面不會因為說明很長而跟著變長 */
+.release__scroll {
+  max-height: min(360px, 55vh);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+/* 可捲動時底部以漸層提示還有內容：黏在捲動區底部，捲到底時落在說明後面的空白處 */
+.release__scroll.is-scrollable::after {
+  content: "";
+  display: block;
+  position: sticky;
+  bottom: 0;
+  height: 32px;
+  background: linear-gradient(transparent, var(--bg));
+  pointer-events: none;
+}
+/* 焦點框畫在內側，避免被相鄰區塊蓋住 */
+.release__scroll:focus-visible { outline-offset: -2px; border-radius: var(--radius-sm); }
+
+/* 下載檔案：點標題展開／收合（箭頭向右是收合、向下是展開），說明提示緊接在標題後面 */
+.downloads__head { display: flex; align-items: center; gap: 4px; }
+.downloads__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.downloads__count { color: var(--text-secondary); font-size: 0.875rem; font-weight: 400; }
+.downloads__indicator { color: var(--text-secondary); transition: transform 0.2s var(--ease); }
+.downloads__toggle[aria-expanded="true"] .downloads__indicator { transform: rotate(90deg); }
+.downloads__toggle:hover .downloads__indicator { color: var(--text); }
+.release__block--downloads .asset-list { margin-top: 0; }
 
 .callout {
   display: flex;
@@ -860,11 +892,14 @@ main:focus { outline: none; }
 
 .notes { display: grid; gap: 24px; }
 .note-group { display: grid; gap: 8px; }
+/* 在「版本說明」區塊標題之下，字級小一階 */
 .note-group__title {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 1.0625rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 /* 升級須知需要客戶採取行動，獨立成一塊提醒 */
 .note-group--upgradeNotes {
@@ -890,7 +925,6 @@ main:focus { outline: none; }
 .note-group--upgradeNotes code, .steps code { background: var(--bg); }
 
 .panel-subtitle { font-size: 1.0625rem; }
-.asset-note { margin-top: 4px; color: var(--text-secondary); font-size: 0.875rem; }
 
 .asset-list {
   display: grid;
