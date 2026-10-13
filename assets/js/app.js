@@ -359,7 +359,10 @@ function releaseItem(release) {
   const id = releaseId(release);
   const withdrawn = isWithdrawn(release);
   const open = state.open.has(release.version);
-  const panel = el('div', { class: 'release__panel', id: `${id}-panel`, hidden: !open }, releaseBody(release));
+  // 展開的內容有高度上限、超過時在卡片內捲動（site.css）；可聚焦，鍵盤才捲得動沒有連結的版本說明
+  const panel = el('div', {
+    class: 'release__panel', id: `${id}-panel`, hidden: !open, tabindex: '0', role: 'region', 'aria-label': `v${release.version} 版本說明與下載檔案`,
+  }, releaseBody(release));
   const toggle = el('button', {
     class: 'release__toggle', type: 'button', id: `${id}-toggle`, 'aria-expanded': String(open), 'aria-controls': panel.id,
   },

@@ -51,8 +51,7 @@
   --radius: 18px;
   --radius-lg: 28px;
   --radius-pill: 980px;
-  --shadow-menu: 0 12px 24px -12px rgb(0 0 0 / 0.18);
-  --ease: cubic-bezier(0.28, 0.11, 0.32, 1);
+  --shadow-menu: 0 12px 24px -12px rgb(0 0 0 / 0.18);  --ease: cubic-bezier(0.28, 0.11, 0.32, 1);
 }
 
 @media (min-width: 735px) and (max-width: 1068px) {
@@ -813,17 +812,36 @@ main:focus { outline: none; }
 
 .release__summary { margin-top: -6px; padding: 0 20px 20px; }
 
+/* 展開的內容有高度上限，超過時在卡片內捲動，頁面不會因為版本說明很長而跟著變長 */
 .release__panel {
+  --panel-pad-y: 24px;
   display: grid;
+  align-content: start;
   gap: 24px;
-  padding: 24px 20px;
+  max-height: min(560px, 70vh);
+  overflow-y: auto;
+  padding: var(--panel-pad-y) 20px;
   border-top: 1px solid var(--divider);
+  border-radius: 0 0 var(--radius) var(--radius);
 }
+/* 底部漸層提示下面還有內容：黏在捲動區底部（黏貼範圍會內縮 padding，用負值抵掉）；
+ * 捲到底時 margin 抵掉格線間距，漸層落在最後的空白處 */
+.release__panel::after {
+  content: "";
+  position: sticky;
+  bottom: calc(-1 * var(--panel-pad-y));
+  height: 40px;
+  margin-top: -24px;
+  background: linear-gradient(transparent, var(--bg));
+  pointer-events: none;
+}
+/* 可捲動區塊要能用鍵盤聚焦捲動；焦點框畫在內側，避免被卡片圓角切掉 */
+.release__panel:focus-visible { outline-offset: -2px; }
 
 @media (min-width: 735px) {
   .release__toggle { padding-inline: 28px; }
   .release__summary { padding-inline: 28px; }
-  .release__panel { padding: 28px; }
+  .release__panel { --panel-pad-y: 28px; padding: var(--panel-pad-y) 28px; }
 }
 
 .release--skeleton .release__card { padding: 26px 20px; }
