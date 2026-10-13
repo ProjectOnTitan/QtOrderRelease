@@ -70,7 +70,8 @@ describe('首發', () => {
 
     const data = firstRelease();
     assert.equal(data.mock, false);
-    assert.equal(data.minimumVersion, '1.6.0');
+    assert.deepEqual(data.minimumVersions, { taishin: '1.6.0', 'zf-mega': '1.6.0', capital: '1.6.0' });
+    assert.deepEqual(Object.keys(data), ['$schema', 'schemaVersion', 'mock', 'generatedAt', 'minimumVersions', 'product', 'releases']);
     assert.equal(data.generatedAt, day(4));
     assert.deepEqual(data.releases.map((r) => r.version), ['1.6.0']);
     assert.equal(data.releases[0].sourceCommit, commitA);
@@ -109,9 +110,9 @@ describe('發布與晉升', () => {
 
   it('新版本號在穩定版觸發時是緊急修正，提供前一個版本的 commit 作為比對基準', () => {
     const preview = publish(firstRelease(), '1.7.0', 'preview', { commit: commitB, at: day(5) });
-    assert.deepEqual(plan(preview, { version: '1.6.1', channel: 'stable', sourceCommit: commitB }),
-      { action: 'publish', channel: 'stable', previousVersion: '1.6.0', previousSourceCommit: commitA });
-    const hotfix = publish(preview, '1.6.1', 'stable', { commit: commitB, at: day(6) });
+    assert.deepEqual(plan(preview, { version: '1.7.1', channel: 'stable', sourceCommit: commitA }),
+      { action: 'publish', channel: 'stable', previousVersion: '1.7.0', previousSourceCommit: commitB });
+    const hotfix = publish(preview, '1.7.1', 'stable', { commit: commitA, at: day(6) });
     assert.deepEqual(validateReleaseData(hotfix, schema), []);
   });
 

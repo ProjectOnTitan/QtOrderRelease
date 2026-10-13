@@ -91,9 +91,9 @@ function checkArgs({ version, channel, sourceCommit }) {
 // 第一個正式版本發布前，發布紀錄是模擬資料；首發時整批清掉（README「發布流程」）。
 function startingPoint(data) {
   if (!data.mock) return data;
-  // 模擬資料的最低支援版本一併清掉，首發時改設為首發版本
+  // 模擬資料的最低支援版本一併清掉，各家第一個穩定版發布時再設定
   const real = { ...data, mock: false, releases: [] };
-  delete real.minimumVersion;
+  delete real.minimumVersions;
   return real;
 }
 
@@ -141,8 +141,16 @@ export function planRelease(data, { version, channel, sourceCommit, at = taipeiN
   return { action: 'publish', channel, previousVersion: previous?.version ?? null, previousSourceCommit: previous?.sourceCommit ?? null };
 }
 
+// 發布紀錄的欄位順序固定，寫回檔案時 diff 才好讀。
+const RECORD_KEYS = ['$schema', 'schemaVersion', 'mock', 'generatedAt', 'minimumVersions', 'product', 'releases'];
+const ordered = (record) => Object.fromEntries(Object.entries(record)
+  .sort(([a], [b]) => RECORD_KEYS.indexOf(a) - RECORD_KEYS.indexOf(b)));
+
 function addRelease(base, { version, channel, sourceCommit, at, summary, requiresInstaller, notes, assets }) {
-  const firstStable = !latestStable(base.releases) && channel === 'stable';
+  // 每家的第一個穩定版同時是那家的最低支援版本：最低支援版本必須是包含這家的未撤回穩定版
+  const firstStable = channel === 'stable'
+    ? [...new Set(assets.map((asset) => asset.broker))].filter((broker) => !latestStable(base.releases, broker))
+    : [];
   const release = {
     version,
     channel,
@@ -154,14 +162,15 @@ function addRelease(base, { version, channel, sourceCommit, at, summary, require
     notes,
     assets,
   };
-  return {
+  return ordered({
     ...base,
-    schemaVersion: 2,
+    schemaVersion: 3,
     generatedAt: at,
-    // 第一個穩定版同時是最低支援版本：最低支援版本必須是未撤回的穩定版
-    ...(firstStable && { minimumVersion: version }),
+    ...(firstStable.length && {
+      minimumVersions: { ...base.minimumVersions, ...Object.fromEntries(firstStable.map((broker) => [broker, version])) },
+    }),
     releases: [release, ...base.releases],
-  };
+  });
 }
 
 /* 新增一個版本。assets.json 由 QtOrder 的 deploy/package.ps1 產生：{ version, assets: [{ name, kind, size, sha256 }] }。 */

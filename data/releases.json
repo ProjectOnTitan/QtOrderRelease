@@ -1,9 +1,13 @@
 {
   "$schema": "./releases.schema.json",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "mock": true,
-  "generatedAt": "2026-10-03T16:00:00+08:00",
-  "minimumVersion": "1.6.2",
+  "generatedAt": "2026-10-13T16:30:00+08:00",
+  "minimumVersions": {
+    "taishin": "1.6.2",
+    "zf-mega": "1.6.2",
+    "capital": "1.6.2"
+  },
   "product": {
     "name": "QtOrder",
     "repositoryUrl": "https://github.com/ProjectOnTitan/QtOrderRelease",
@@ -88,22 +92,6 @@
           "sha256": "f919d936c63a6227571d7791eeb0a4d8169b1a61b7155c3acdd43141fee9ea63",
           "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.8.0/QtOrder_zf-mega_v1.8.0.zip",
           "broker": "zf-mega"
-        },
-        {
-          "name": "Setup_QtOrder_capital_v1.8.0.exe",
-          "kind": "installer",
-          "size": 64421888,
-          "sha256": "74d54ee16ec6ebab8026e51b96451b3d65ea4e1ec129a0e3929d208cb00e3a24",
-          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.8.0/Setup_QtOrder_capital_v1.8.0.exe",
-          "broker": "capital"
-        },
-        {
-          "name": "QtOrder_capital_v1.8.0.zip",
-          "kind": "update",
-          "size": 58195968,
-          "sha256": "f919d936c63a6227571d7791eeb0a4d8169b1a61b7155c3acdd43141fee9ea63",
-          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.8.0/QtOrder_capital_v1.8.0.zip",
-          "broker": "capital"
         }
       ]
     },
@@ -112,7 +100,7 @@
       "channel": "stable",
       "publishedAt": "2026-09-19T18:00:00+08:00",
       "promotedAt": "2026-09-22T18:00:00+08:00",
-      "summary": "修正一鍵平倉重複送單的問題，取代已撤回的 1.7.0。",
+      "summary": "修正群益證券一鍵平倉重複送單的問題，取代已撤回的 1.7.0。",
       "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.7.1",
       "notes": {
         "upgradeNotes": [
@@ -123,38 +111,6 @@
         ]
       },
       "assets": [
-        {
-          "name": "Setup_QtOrder_taishin_v1.7.1.exe",
-          "kind": "installer",
-          "size": 63963136,
-          "sha256": "63e33ca8bff2938d98c9dd6c38dd7f3174dc9a45240ac508f5d1940e9ce15432",
-          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.7.1/Setup_QtOrder_taishin_v1.7.1.exe",
-          "broker": "taishin"
-        },
-        {
-          "name": "QtOrder_taishin_v1.7.1.zip",
-          "kind": "update",
-          "size": 57737216,
-          "sha256": "25a2af96027d56a69b0bbad22728da2801e9fa031a705a970649a93068c604ce",
-          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.7.1/QtOrder_taishin_v1.7.1.zip",
-          "broker": "taishin"
-        },
-        {
-          "name": "Setup_QtOrder_zf-mega_v1.7.1.exe",
-          "kind": "installer",
-          "size": 63963136,
-          "sha256": "63e33ca8bff2938d98c9dd6c38dd7f3174dc9a45240ac508f5d1940e9ce15432",
-          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.7.1/Setup_QtOrder_zf-mega_v1.7.1.exe",
-          "broker": "zf-mega"
-        },
-        {
-          "name": "QtOrder_zf-mega_v1.7.1.zip",
-          "kind": "update",
-          "size": 57737216,
-          "sha256": "25a2af96027d56a69b0bbad22728da2801e9fa031a705a970649a93068c604ce",
-          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.7.1/QtOrder_zf-mega_v1.7.1.zip",
-          "broker": "zf-mega"
-        },
         {
           "name": "Setup_QtOrder_capital_v1.7.1.exe",
           "kind": "installer",

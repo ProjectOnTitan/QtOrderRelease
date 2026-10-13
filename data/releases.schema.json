@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://projectontitan.github.io/QtOrderRelease/data/releases.schema.json",
   "title": "QtOrder 發布紀錄",
-  "description": "發布中心與更新清單唯一的資料來源，用語見 CONTEXT.md。跨欄位規則（版本號遞增、最低支援版本必須是未撤回的穩定版等）由 assets/js/release-model.js 的 checkReleaseRules 檢查。",
+  "description": "發布中心與更新清單唯一的資料來源，用語見 CONTEXT.md。跨欄位規則（版本號遞增、各券商的最低支援版本必須是包含該券商的未撤回穩定版等）由 assets/js/release-model.js 的 checkReleaseRules 檢查。",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -16,7 +16,7 @@
       "type": "string"
     },
     "schemaVersion": {
-      "const": 2
+      "const": 3
     },
     "mock": {
       "type": "boolean",
@@ -27,9 +27,15 @@
       "format": "date-time",
       "description": "本檔最後一次修改的時間，顯示在頁面上的「資料更新」。"
     },
-    "minimumVersion": {
-      "$ref": "#/$defs/version",
-      "description": "最低支援版本：本機版本低於它時，啟動器會強制更新到最新穩定版。必須是一個未撤回的穩定版；有任何版本時必填。"
+    "minimumVersions": {
+      "type": "object",
+      "description": "各券商的最低支援版本：本機版本低於它時，啟動器會強制更新到該券商最新的穩定版。必須是包含該券商的未撤回穩定版；該券商有任何版本時必填。",
+      "propertyNames": {
+        "$ref": "#/$defs/broker"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/version"
+      }
     },
     "product": {
       "type": "object",
@@ -156,7 +162,7 @@
         "sourceCommit": {
           "type": "string",
           "pattern": "^[0-9a-f]{40}$",
-          "description": "建置來源的 QtOrder commit。晉升時比對分支 HEAD，判斷是否需要重新安裝時當作比對基準（QtOrder ADR-0033）。"
+          "description": "建置來源的 QtOrder commit。判斷該券商自上次發布以來有沒有異動、是否需要重新安裝時，當作比對基準（QtOrder ADR-0044）。"
         },
         "requiresInstaller": {
           "type": "boolean",
@@ -167,8 +173,8 @@
         },
         "assets": {
           "type": "array",
-          "description": "三家券商各有安裝程式與更新套件，共六個。",
-          "minItems": 6,
+          "description": "發布時勾選的券商各有安裝程式與更新套件：一家 2 個，最多三家 6 個（ADR-0005）。",
+          "minItems": 2,
           "maxItems": 6,
           "items": {
             "$ref": "#/$defs/asset"
@@ -247,13 +253,17 @@
           "format": "uri"
         },
         "broker": {
-          "enum": [
-            "taishin",
-            "zf-mega",
-            "capital"
-          ]
+          "$ref": "#/$defs/broker"
         }
       }
+    },
+    "broker": {
+      "enum": [
+        "taishin",
+        "zf-mega",
+        "capital"
+      ],
+      "description": "券商識別，見 CONTEXT.md「券商交付」。"
     }
   }
 }

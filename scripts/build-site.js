@@ -33,7 +33,9 @@ if (outIndex !== -1) {
   const manifest = buildUpdateManifest(data);
   if (manifest) {
     writeFileSync(join(out, MANIFEST_FILE), `${JSON.stringify(manifest, null, 2)}\n`);
-    console.log(`更新清單：穩定版 v${manifest.brokers.taishin.stable.version}、預覽版 v${manifest.brokers.taishin.preview.version}、最低支援版本 v${manifest.brokers.taishin.min_version}`);
+    for (const [broker, entry] of Object.entries(manifest.brokers)) {
+      console.log(`更新清單 ${broker}：穩定版 v${entry.stable.version}、預覽版 v${entry.preview.version}、最低支援版本 v${entry.min_version}`);
+    }
   }
 
   // 模擬資料不能被搜尋引擎收錄；標記不見時寧可失敗，也不要靜默漏掉 noindex。

@@ -1,7 +1,7 @@
 # ADR-0004：三家單券商交付共用版本與發布通道
 
 Date: 2026-10-04
-Status: Accepted
+Status: Accepted（每版三家六個資產、三家不能獨立升版 → ADR-0005）
 
 ## Context
 
