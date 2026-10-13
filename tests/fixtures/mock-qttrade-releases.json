@@ -1,0 +1,128 @@
+{
+  "$schema": "../../data/releases.schema.json",
+  "schemaVersion": 3,
+  "mock": true,
+  "generatedAt": "2026-10-20T18:30:00+08:00",
+  "minimumVersions": {
+    "kgi": "1.0.0"
+  },
+  "product": {
+    "id": "qttrade",
+    "name": "QtTrade",
+    "repositoryUrl": "https://github.com/ProjectOnTitan/QtOrderRelease",
+    "requirements": [
+      "Windows 10 或 Windows 11（64 位元）",
+      "安裝時需要系統管理員權限",
+      "穩定的網路連線"
+    ],
+    "brokerRequirements": [
+      {
+        "broker": "凱基期貨",
+        "items": [
+          "凱基期貨帳號",
+          "凱基憑證（.pfx）"
+        ]
+      }
+    ]
+  },
+  "releases": [
+    {
+      "version": "1.1.0",
+      "channel": "preview",
+      "publishedAt": "2026-10-20T18:00:00+08:00",
+      "requiresInstaller": true,
+      "summary": "啟動器改版，並新增委託回報匯出。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/qttrade-v1.1.0",
+      "notes": {
+        "upgradeNotes": [
+          "這一版更新了啟動器，請下載安裝程式重新安裝；帳號設定會保留"
+        ],
+        "features": [
+          "委託回報可以匯出成 CSV"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtTrade_kgi_v1.1.0.exe",
+          "kind": "installer",
+          "size": 152043520,
+          "sha256": "4b1c8f0d7e5a3b2c6d9e8f7a1b0c3d2e5f4a6b8c9d0e1f2a3b4c5d6e7f8a9b0c",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/qttrade-v1.1.0/Setup_QtTrade_kgi_v1.1.0.exe",
+          "broker": "kgi"
+        },
+        {
+          "name": "QtTrade_kgi_v1.1.0.zip",
+          "kind": "update",
+          "size": 140509184,
+          "sha256": "9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/qttrade-v1.1.0/QtTrade_kgi_v1.1.0.zip",
+          "broker": "kgi"
+        }
+      ]
+    },
+    {
+      "version": "1.0.1",
+      "channel": "stable",
+      "publishedAt": "2026-10-17T18:00:00+08:00",
+      "summary": "修正夜盤開盤時偶爾重複登入的問題。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/qttrade-v1.0.1",
+      "notes": {
+        "fixes": [
+          "修正夜盤開盤時偶爾重複登入凱基的問題"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtTrade_kgi_v1.0.1.exe",
+          "kind": "installer",
+          "size": 151519232,
+          "sha256": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/qttrade-v1.0.1/Setup_QtTrade_kgi_v1.0.1.exe",
+          "broker": "kgi"
+        },
+        {
+          "name": "QtTrade_kgi_v1.0.1.zip",
+          "kind": "update",
+          "size": 139984896,
+          "sha256": "2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/qttrade-v1.0.1/QtTrade_kgi_v1.0.1.zip",
+          "broker": "kgi"
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "channel": "stable",
+      "publishedAt": "2026-10-15T18:00:00+08:00",
+      "requiresInstaller": true,
+      "summary": "QtTrade 第一個版本，供凱基期貨客戶自動下單。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/qttrade-v1.0.0",
+      "notes": {
+        "upgradeNotes": [
+          "第一個版本，請使用安裝程式安裝"
+        ],
+        "features": [
+          "接收策略訊號，自動對凱基期貨帳號下單"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtTrade_kgi_v1.0.0.exe",
+          "kind": "installer",
+          "size": 151257088,
+          "sha256": "3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/qttrade-v1.0.0/Setup_QtTrade_kgi_v1.0.0.exe",
+          "broker": "kgi"
+        },
+        {
+          "name": "QtTrade_kgi_v1.0.0.zip",
+          "kind": "update",
+          "size": 139722752,
+          "sha256": "4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/qttrade-v1.0.0/QtTrade_kgi_v1.0.0.zip",
+          "broker": "kgi"
+        }
+      ]
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://projectontitan.github.io/QtOrderRelease/data/releases.schema.json",
-  "title": "QtOrder 發布紀錄",
-  "description": "發布中心與更新清單唯一的資料來源，用語見 CONTEXT.md。跨欄位規則（版本號遞增、各券商的最低支援版本必須是包含該券商的未撤回穩定版等）由 assets/js/release-model.js 的 checkReleaseRules 檢查。",
+  "title": "發布紀錄",
+  "description": "單一產品的發布中心內容與更新清單唯一的資料來源，每個產品各有一份（ADR-0006），用語見 CONTEXT.md。跨欄位規則（版本號遞增、各券商的最低支援版本必須是包含該券商的未撤回穩定版等）由 assets/js/release-model.js 的 checkReleaseRules 檢查。",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -44,6 +44,13 @@
       ],
       "additionalProperties": false,
       "properties": {
+        "id": {
+          "enum": [
+            "qtorder",
+            "qttrade"
+          ],
+          "description": "產品識別，決定這份發布紀錄可用的券商、下載檔名與 tag 前綴（assets/js/release-model.js 的 PRODUCTS）。省略時是 qtorder（ADR-0006）。"
+        },
         "name": {
           "type": "string",
           "minLength": 1
@@ -88,7 +95,7 @@
         },
         "components": {
           "type": "array",
-          "description": "各券商需要另外安裝的元件，安裝程式缺少時會自動安裝；由 QtOrder 的 deploy/prerequisites.ps1 -Action Export 匯出後寫入，不手動編輯。",
+          "description": "各券商需要另外安裝的元件，安裝程式缺少時會自動安裝；由產品的發布流程寫入（QtOrder 是 deploy/prerequisites.ps1 -Action Export 的輸出），不手動編輯。",
           "items": {
             "type": "object",
             "required": [
@@ -201,11 +208,11 @@
         "sourceCommit": {
           "type": "string",
           "pattern": "^[0-9a-f]{40}$",
-          "description": "建置來源的 QtOrder commit。判斷該券商自上次發布以來有沒有異動、是否需要重新安裝時，當作比對基準（QtOrder ADR-0044）。"
+          "description": "建置來源在產品 repo 的 commit。判斷該券商自上次發布以來有沒有異動、是否需要重新安裝時，當作比對基準（QtOrder ADR-0044）。"
         },
         "requiresInstaller": {
           "type": "boolean",
-          "description": "這個版本更新了券商 COM 元件或啟動器，必須用安裝程式安裝，啟動器不會套用更新套件（QtOrder ADR-0035）。"
+          "description": "這個版本更新了券商元件、啟動器或安裝程式，必須用安裝程式安裝，啟動器不會套用更新套件（QtOrder ADR-0035）。"
         },
         "notes": {
           "$ref": "#/$defs/notes"
@@ -300,9 +307,10 @@
       "enum": [
         "taishin",
         "zf-mega",
-        "capital"
+        "capital",
+        "kgi"
       ],
-      "description": "券商識別，見 CONTEXT.md「券商交付」。"
+      "description": "券商識別，見 CONTEXT.md「券商交付」；各產品可用哪幾家由 release-model.js 的 PRODUCTS 檢查。"
     }
   }
 }

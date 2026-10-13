@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import {
-  BROKERS, brokersOf, buildUpdateManifest, checkReleaseRules, compareVersions, latestPreview, latestStable, minInstallerVersion,
+  PRODUCTS, brokersOf, buildUpdateManifest, checkReleaseRules, compareVersions, latestPreview, latestStable, minInstallerVersion, productOf,
 } from '../assets/js/release-model.js';
 import { validateReleaseData } from '../scripts/validate.js';
 
@@ -10,6 +10,8 @@ const readJson = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.
 const schema = readJson('data/releases.schema.json');
 // 首發前的模擬資料；data/releases.json 首發後是正式紀錄，不能拿來當測試資料
 const mock = readJson('tests/fixtures/mock-releases.json');
+const qttradeMock = readJson('tests/fixtures/mock-qttrade-releases.json');
+const BROKERS = PRODUCTS.qtorder.brokers;
 
 function release(version, channel, { publishedAt, promotedAt, withdrawn, requiresInstaller, brokers = BROKERS } = {}) {
   const asset = (kind, name) => ({
@@ -225,6 +227,69 @@ describe('發布紀錄驗證', () => {
     const data = record([]);
     delete data.minimumVersions;
     assert.deepEqual(validateReleaseData(data, schema), []);
+  });
+});
+
+describe('多產品（ADR-0006）', () => {
+  const qttradeEmpty = () => {
+    const data = { ...structuredClone(qttradeMock), mock: false, releases: [] };
+    delete data.minimumVersions;
+    return data;
+  };
+
+  it('依 product.id 判斷產品，QtOrder 的發布紀錄沒有 id', () => {
+    assert.equal(productOf(mock), PRODUCTS.qtorder);
+    assert.equal(productOf(readJson('data/releases.json')), PRODUCTS.qtorder);
+    assert.equal(productOf(qttradeMock), PRODUCTS.qttrade);
+    assert.throws(() => productOf({ product: { id: 'other' } }), /不認得的產品/);
+  });
+
+  it('QtTrade 的模擬資料、正式紀錄與首發前的空紀錄都通過完整驗證', () => {
+    assert.deepEqual(validateReleaseData(qttradeMock, schema), []);
+    assert.deepEqual(validateReleaseData(readJson('data/qttrade/releases.json'), schema), []);
+    assert.deepEqual(validateReleaseData(qttradeEmpty(), schema), []);
+  });
+
+  it('QtTrade 首發前不產生更新清單', () => {
+    assert.equal(buildUpdateManifest(qttradeEmpty()), null);
+  });
+
+  it('QtTrade 的更新清單只有 kgi，下載網址用 QtTrade 的 tag 與檔名', () => {
+    const manifest = buildUpdateManifest(qttradeMock);
+    assert.equal(manifest.schemaVersion, 2);
+    assert.deepEqual(Object.keys(manifest.brokers), ['kgi']);
+    const { stable, preview, min_version: minimum } = manifest.brokers.kgi;
+    assert.equal(stable.version, '1.0.1');
+    assert.equal(stable.broker, 'kgi');
+    assert.match(stable.url, /\/qttrade-v1\.0\.1\/QtTrade_kgi_v1\.0\.1\.zip$/);
+    assert.equal(stable.min_installer_version, '1.0.0');
+    assert.equal(preview.version, '1.1.0');
+    assert.equal(preview.min_installer_version, '1.1.0');
+    assert.equal(minimum, '1.0.0');
+  });
+
+  it('兩個產品的券商不能混用', () => {
+    const order = structuredClone(mock);
+    order.releases[0].assets.forEach((asset) => { asset.broker = 'kgi'; });
+    assert.ok(checkReleaseRules(order).some((error) => /QtOrder 沒有這些券商：kgi/.test(error)));
+
+    const trade = structuredClone(qttradeMock);
+    trade.releases[0].assets[0].broker = 'taishin';
+    assert.ok(checkReleaseRules(trade).some((error) => /QtTrade 沒有這些券商：taishin/.test(error)));
+
+    const minimum = structuredClone(mock);
+    minimum.minimumVersions.kgi = '1.6.2';
+    assert.ok(checkReleaseRules(minimum).some((error) => /kgi：QtOrder 沒有這家券商/.test(error)));
+
+    const component = structuredClone(qttradeMock);
+    component.product.components = [{ name: 'A', brokers: ['capital'], url: 'https://example.test/a' }];
+    assert.ok(checkReleaseRules(component).some((error) => /必要元件「A」：QtTrade 沒有這些券商：capital/.test(error)));
+  });
+
+  it('拒絕不認得的產品識別', () => {
+    const data = structuredClone(qttradeMock);
+    data.product.id = 'qtother';
+    assert.ok(validateReleaseData(data, schema).length > 0);
   });
 });
 

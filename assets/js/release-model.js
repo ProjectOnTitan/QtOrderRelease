@@ -1,6 +1,7 @@
-/* QtOrder 發布規則
+/* 發布規則
  * 發布中心頁面（瀏覽器）與建置腳本（Node）共用本檔，確保頁面顯示的最新版本與
- * 更新清單交給啟動器的版本一致。用語見 CONTEXT.md，版本規則見 docs/adr/0001。 */
+ * 更新清單交給啟動器的版本一致。用語見 CONTEXT.md，版本規則見 docs/adr/0001。
+ * 發布中心有 QtOrder 與 QtTrade 兩個產品（ADR-0006），各有一份發布紀錄；以下的規則都只看單一產品的發布紀錄。 */
 
 const VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
@@ -23,13 +24,37 @@ export const isWithdrawn = (release) => Boolean(release.withdrawn);
 // 版本成為穩定版的時間：晉升的版本取晉升時間，緊急修正取發布時間。
 export const stableSince = (release) => release.promotedAt ?? release.publishedAt;
 
-export const BROKERS = ['taishin', 'zf-mega', 'capital'];
-export const BROKER_NAMES = { taishin: '台新證券', 'zf-mega': '兆豐證券', capital: '群益證券' };
+/* 各產品的發布紀錄、更新清單與 tag 前綴各自獨立，只共用發布頁面與存放下載檔案的 GitHub Releases（ADR-0006）。
+ * 路徑相對於網站根目錄。 */
+export const PRODUCTS = {
+  qtorder: {
+    id: 'qtorder', name: 'QtOrder', brokers: ['taishin', 'zf-mega', 'capital'],
+    record: 'data/releases.json', manifest: 'update.json', tagPrefix: 'v',
+  },
+  qttrade: {
+    id: 'qttrade', name: 'QtTrade', brokers: ['kgi'],
+    record: 'data/qttrade/releases.json', manifest: 'qttrade/update.json', tagPrefix: 'qttrade-v',
+  },
+};
+export const BROKER_NAMES = { taishin: '台新證券', 'zf-mega': '兆豐證券', capital: '群益證券', kgi: '凱基期貨' };
+const ALL_BROKERS = Object.values(PRODUCTS).flatMap((product) => product.brokers);
+
+// 發布紀錄沒有 product.id 時是 QtOrder：它的發布紀錄早於多產品，不為此改動正式資料（ADR-0006）。
+export function productOf(data) {
+  const id = data?.product?.id ?? 'qtorder';
+  if (!Object.hasOwn(PRODUCTS, id)) throw new Error(`不認得的產品：${id}`);
+  return PRODUCTS[id];
+}
+
+export const tagOf = (product, version) => `${product.tagPrefix}${version}`;
+export const assetName = (product, kind, broker, version) => (kind === 'installer'
+  ? `Setup_${product.name}_${broker}_v${version}.exe`
+  : `${product.name}_${broker}_v${version}.zip`);
 export const findAsset = (release, kind, broker) => release.assets.find((asset) => asset.kind === kind && asset.broker === broker) ?? null;
 
 /* 每個版本只含發布時勾選的券商（ADR-0005），由下載檔案推導，不另存欄位。
  * 以下的 broker 參數省略時不分券商，供頁面顯示整體歷程。 */
-export const brokersOf = (release) => BROKERS.filter((broker) => release.assets.some((asset) => asset.broker === broker));
+export const brokersOf = (release) => ALL_BROKERS.filter((broker) => release.assets.some((asset) => asset.broker === broker));
 export const includesBroker = (release, broker) => broker === undefined || release.assets.some((asset) => asset.broker === broker);
 
 function highest(releases) {
@@ -62,6 +87,7 @@ export function minInstallerVersion(releases, target, broker) {
  * 啟動器找不到自身券商時不更新、照常啟動本機版本。
  * 預覽版沒有更新的版本時指向穩定版，避免選預覽版的客戶被降級。 */
 export function buildUpdateManifest(data) {
+  const product = productOf(data);
   const entry = (release, broker) => {
     const update = findAsset(release, 'update', broker);
     const minInstaller = minInstallerVersion(data.releases, release, broker);
@@ -75,7 +101,7 @@ export function buildUpdateManifest(data) {
       ...(minInstaller && { min_installer_version: minInstaller }),
     };
   };
-  const brokers = BROKERS.flatMap((broker) => {
+  const brokers = product.brokers.flatMap((broker) => {
     const stable = latestStable(data.releases, broker);
     if (!stable) return [];
     const minimum = data.minimumVersions?.[broker];
@@ -91,6 +117,7 @@ export function buildUpdateManifest(data) {
 /* JSON Schema 表達不了的跨欄位規則。回傳錯誤訊息陣列，空陣列代表通過。 */
 export function checkReleaseRules(data) {
   const errors = [];
+  const product = productOf(data);
   const releases = data.releases;
   const seen = new Set();
 
@@ -103,7 +130,8 @@ export function checkReleaseRules(data) {
     if (release.promotedAt && Date.parse(release.promotedAt) < Date.parse(release.publishedAt)) errors.push(`${label}：晉升時間早於發布時間`);
     if (release.withdrawn && Date.parse(release.withdrawn.at) < Date.parse(release.publishedAt)) errors.push(`${label}：撤回時間早於發布時間`);
 
-    if (release.assets.some((asset) => !BROKERS.includes(asset.broker))) errors.push(`${label}：不認得的券商識別`);
+    const foreign = [...new Set(release.assets.map((asset) => asset.broker))].filter((broker) => !product.brokers.includes(broker));
+    if (foreign.length) errors.push(`${label}：${product.name} 沒有這些券商：${foreign.join('、')}`);
     const included = brokersOf(release);
     if (!included.length) errors.push(`${label}：至少要包含一家券商的下載檔案`);
     for (const broker of included) {
@@ -124,16 +152,22 @@ export function checkReleaseRules(data) {
       }
     }
   };
-  // 版本號三家共用、只從 QtOrder 的 main 發布，所以不分券商都隨發布時間遞增（QtOrder ADR-0043）。
+  // 同一個產品的版本號各家共用、只從該產品 repo 的 main 發布，所以不分券商都隨發布時間遞增（QtOrder ADR-0043）；
+  // 不同產品各有一份發布紀錄，版本號互不相干（ADR-0006）。
   increasing(releases, (release) => release.publishedAt, '發布');
 
   const minimums = data.minimumVersions ?? {};
   for (const broker of Object.keys(minimums)) {
-    if (!releases.some((release) => includesBroker(release, broker))) errors.push(`${broker}：還沒有任何版本，不能設定最低支援版本`);
+    if (!product.brokers.includes(broker)) errors.push(`${broker}：${product.name} 沒有這家券商，不能設定最低支援版本`);
+    else if (!releases.some((release) => includesBroker(release, broker))) errors.push(`${broker}：還沒有任何版本，不能設定最低支援版本`);
+  }
+  for (const component of data.product?.components ?? []) {
+    const foreign = component.brokers.filter((broker) => !product.brokers.includes(broker));
+    if (foreign.length) errors.push(`必要元件「${component.name}」：${product.name} 沒有這些券商：${foreign.join('、')}`);
   }
 
   // 晉升不必依版本號順序，但同一家成為穩定版的順序必須遞增；各家的最低支援版本也各自檢查。
-  for (const broker of BROKERS) {
+  for (const broker of product.brokers) {
     const own = releases.filter((release) => includesBroker(release, broker));
     if (!own.length) continue;
     increasing(own.filter((release) => release.channel === 'stable' && !isWithdrawn(release)), stableSince, `${broker} 穩定版`);

@@ -1,0 +1,26 @@
+{
+  "$schema": "../releases.schema.json",
+  "schemaVersion": 3,
+  "mock": false,
+  "generatedAt": "2026-10-14T00:00:00+08:00",
+  "product": {
+    "id": "qttrade",
+    "name": "QtTrade",
+    "repositoryUrl": "https://github.com/ProjectOnTitan/QtOrderRelease",
+    "requirements": [
+      "Windows 10 或 Windows 11（64 位元）",
+      "安裝時需要系統管理員權限",
+      "穩定的網路連線"
+    ],
+    "brokerRequirements": [
+      {
+        "broker": "凱基期貨",
+        "items": [
+          "凱基期貨帳號",
+          "凱基憑證（.pfx）"
+        ]
+      }
+    ]
+  },
+  "releases": []
+}

@@ -1,4 +1,4 @@
-/* QtOrder 發布中心
+/* 發布中心（QtOrder 與 QtTrade）
  * 版型參考 apple.com：白與淺灰交替的區段、置中的大標題、大圓角色塊與膠囊按鈕。
  * 只有淺色一種配色；色彩一律取自 :root 的語意 token，元件內不直接寫色碼。
  * 每個 token 旁標註的對比值都已依 WCAG AA 核對（文字 4.5:1、元件與焦點框 3:1），改色時請重新核對。
@@ -351,6 +351,32 @@ main:focus { outline: none; }
 @media (max-width: 374px) {
   .brand__tag { display: none; }
 }
+
+/* ---------- 產品導覽與產品區塊 ---------- */
+
+/* 頁首下方的產品導覽：QtTrade 首發後才顯示（ADR-0006） */
+.productnav { border-bottom: 1px solid var(--divider); }
+.productnav__inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 24px;
+}
+.productnav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s var(--ease);
+}
+.productnav__link:hover { color: var(--link); }
+.productnav__note { color: var(--text-secondary); font-weight: 400; }
+
+/* 第二個產品的區塊以分隔線與前一個產品的最後一段隔開 */
+.product--separate { border-top: 1px solid var(--divider); }
 
 /* ---------- Hero：最新版本 ---------- */
 

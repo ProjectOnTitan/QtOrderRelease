@@ -1,9 +1,11 @@
-// 由 QtOrder 的 CI 與發布 workflow 呼叫，讀取或修改發布紀錄（data/releases.json）。發布規則一律在這裡與 release-model.js，
-// QtOrder 不另寫一份（QtOrder ADR-0043）。會寫入的指令寫入前都跑完整驗證，不通過就不寫檔、以非零結束。
+// 由 QtOrder 的 CI 與發布 workflow、QtTrade 的發布腳本呼叫，讀取或修改發布紀錄。發布規則一律在這裡與 release-model.js，
+// 各產品不另寫一份（QtOrder ADR-0043）。會寫入的指令寫入前都跑完整驗證，不通過就不寫檔、以非零結束。
 // 每個版本只含發布時勾選的券商（ADR-0005），--brokers 以逗號分隔，例如 taishin,capital。
+// --product 選擇產品的發布紀錄（ADR-0006）：qtorder（預設，data/releases.json）或 qttrade（data/qttrade/releases.json），
+// 可放在任何指令之後。
 //
 //   node scripts/release-record.js baselines --version <v>
-//        QtOrder 打包前判斷各家有沒有異動，輸出 JSON：{ versionPublished, brokers: { <券商>: { version, sourceCommit } | null } }
+//        產品打包前判斷各家有沒有異動，輸出 JSON：{ versionPublished, brokers: { <券商>: { version, sourceCommit } | null } }
 //   node scripts/release-record.js plan --action publish --version <v> --channel preview|stable --source-commit <sha> --brokers <券商>
 //        [--components <components.json>]
 //        建置發布前檢查，輸出 JSON：{ action, version, channel, brokers, previous: { <券商>: { version, sourceCommit } | null } }
@@ -14,12 +16,13 @@
 //   node scripts/release-record.js promote --version <v> [--at <時間>]
 //   node scripts/release-record.js components --components <components.json> [--at <時間>]
 //        只更新發布中心的「必要元件」，例如官方載點變了、還沒有新版本要發布時
-// components.json 是 QtOrder 的 deploy/prerequisites.ps1 -Action Export 的輸出（QtOrder ADR-0049），寫入 product.components。
+// components.json 是各產品必要元件清單，寫入該產品發布紀錄的 product.components；
+// QtOrder 的是 deploy/prerequisites.ps1 -Action Export 的輸出（QtOrder ADR-0049）。
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
-  BROKERS, brokersOf, checkReleaseRules, compareVersions, includesBroker, isVersion, isWithdrawn, latestStable,
+  PRODUCTS, assetName, brokersOf, checkReleaseRules, compareVersions, includesBroker, isVersion, isWithdrawn, latestStable, productOf, tagOf,
 } from '../assets/js/release-model.js';
 import { validateReleaseData } from './validate.js';
 
@@ -42,7 +45,7 @@ export function taipeiNow(date = new Date()) {
   return `${local.toISOString().slice(0, 19)}+08:00`;
 }
 
-/* 版本說明（QtOrder 的 release-notes/<版本>.md）：
+/* 版本說明（各產品 repo 的 release-notes/<版本>.md）：
  *   ---
  *   summary: 一句話摘要
  *   requiresInstaller: false
@@ -97,16 +100,16 @@ function checkVersion(version) {
   if (!isVersion(version)) fail(`版本號必須是純數字三段：${version}`);
 }
 
-/* 檢查發布的參數，回傳依 BROKERS 排序的勾選券商。 */
-function checkPublishArgs({ version, channel, sourceCommit, brokers }) {
+/* 檢查發布的參數，回傳依產品券商順序排序的勾選券商。 */
+function checkPublishArgs(product, { version, channel, sourceCommit, brokers }) {
   checkVersion(version);
   if (!CHANNELS.includes(channel)) fail(`通道只能是 preview 或 stable：${channel}`);
   if (!COMMIT_PATTERN.test(sourceCommit ?? '')) fail(`source commit 必須是 40 碼十六進位：${sourceCommit}`);
   if (!Array.isArray(brokers) || !brokers.length) fail('至少要勾選一家券商');
-  const unknown = brokers.filter((broker) => !BROKERS.includes(broker));
-  if (unknown.length) fail(`不認得的券商：${unknown.join('、')}（只能是 ${BROKERS.join('、')}）`);
+  const unknown = brokers.filter((broker) => !product.brokers.includes(broker));
+  if (unknown.length) fail(`不認得的券商：${unknown.join('、')}（${product.name} 只能是 ${product.brokers.join('、')}）`);
   if (new Set(brokers).size !== brokers.length) fail(`券商重複：${brokers.join(',')}`);
-  return BROKERS.filter((broker) => brokers.includes(broker));
+  return product.brokers.filter((broker) => brokers.includes(broker));
 }
 
 // 第一個正式版本發布前，發布紀錄是模擬資料；首發時整批清掉（README「發布流程」）。
@@ -118,7 +121,7 @@ function startingPoint(data) {
   return real;
 }
 
-// 包含這家的最高版本（含已撤回）。QtOrder 以它的 sourceCommit 判斷這家自上次發布以來有沒有異動、
+// 包含這家的最高版本（含已撤回）。產品以它的 sourceCommit 判斷這家自上次發布以來有沒有異動、
 // 是否需要重新安裝（QtOrder ADR-0044）；below 限定只看比它小的版本。
 function lastReleaseOf(releases, broker, below) {
   const own = releases.filter((release) => includesBroker(release, broker) && (!below || compareVersions(release.version, below) < 0));
@@ -126,13 +129,13 @@ function lastReleaseOf(releases, broker, below) {
 }
 const baselineOf = (release) => (release ? { version: release.version, sourceCommit: release.sourceCommit ?? null } : null);
 
-/* QtOrder 推到 main 時，決定要打包哪幾家之前呼叫：版本號是否已發布，以及各家的比較基準。 */
+/* 產品推到 main 時，決定要打包哪幾家之前呼叫：版本號是否已發布，以及各家的比較基準。 */
 export function releaseBaselines(data, { version }) {
   checkVersion(version);
   const base = startingPoint(data);
   return {
     versionPublished: base.releases.some((release) => release.version === version),
-    brokers: Object.fromEntries(BROKERS.map((broker) => [broker, baselineOf(lastReleaseOf(base.releases, broker))])),
+    brokers: Object.fromEntries(productOf(data).brokers.map((broker) => [broker, baselineOf(lastReleaseOf(base.releases, broker))])),
   };
 }
 
@@ -147,9 +150,9 @@ function checkPublishable(base, { version, channel, brokers }) {
   }
 }
 
-function placeholderAssets(version, brokers) {
+function placeholderAssets(product, version, brokers) {
   return brokers.flatMap((broker) => ['installer', 'update'].map((kind) => ({
-    broker, kind, name: kind === 'installer' ? `Setup_QtOrder_${broker}_v${version}.exe` : `QtOrder_${broker}_v${version}.zip`,
+    broker, kind, name: assetName(product, kind, broker, version),
     size: 1, sha256: '0'.repeat(64), url: 'https://example.invalid/placeholder',
   })));
 }
@@ -164,11 +167,12 @@ export function planRelease(data, { action, version, channel, sourceCommit, brok
   }
   if (action !== 'publish') fail(`動作只能是 publish 或 promote：${action}`);
 
-  const selected = checkPublishArgs({ version, channel, sourceCommit, brokers });
+  const product = productOf(data);
+  const selected = checkPublishArgs(product, { version, channel, sourceCommit, brokers });
   const base = startingPoint(data);
   checkPublishable(base, { version, channel, brokers: selected });
   const simulated = addRelease(base, {
-    version, channel, sourceCommit, at, summary: `v${version}`, requiresInstaller: false, notes: {}, assets: placeholderAssets(version, selected),
+    version, channel, sourceCommit, at, summary: `v${version}`, requiresInstaller: false, notes: {}, assets: placeholderAssets(product, version, selected),
   });
   const errors = checkReleaseRules(simulated);
   if (errors.length) fail(`這次發布會違反發布規則：${errors.join('；')}`);
@@ -198,7 +202,7 @@ function addRelease(base, { version, channel, sourceCommit, at, summary, require
     sourceCommit,
     ...(requiresInstaller && { requiresInstaller: true }),
     summary,
-    releaseUrl: `${base.product.repositoryUrl ?? 'https://github.com/ProjectOnTitan/QtOrderRelease'}/releases/tag/v${version}`,
+    releaseUrl: `${base.product.repositoryUrl ?? 'https://github.com/ProjectOnTitan/QtOrderRelease'}/releases/tag/${tagOf(productOf(base), version)}`,
     notes,
     assets,
   };
@@ -213,7 +217,7 @@ function addRelease(base, { version, channel, sourceCommit, at, summary, require
   });
 }
 
-/* 以 QtOrder 匯出的清單取代發布中心的「必要元件」（product.components），欄位由 schema 驗證。
+/* 以產品匯出的清單取代該產品的「必要元件」（product.components），欄位由 schema 驗證。
  * 內容相同時回傳原本的紀錄，不動 generatedAt。 */
 export function applyComponents(data, components, { at = taipeiNow() } = {}) {
   if (!Array.isArray(components) || !components.length) fail('必要元件清單必須是非空的陣列');
@@ -221,11 +225,12 @@ export function applyComponents(data, components, { at = taipeiNow() } = {}) {
   return { ...data, generatedAt: at, product: { ...data.product, components } };
 }
 
-/* 新增一個版本，只含勾選的券商。assets.json 由 QtOrder 的 deploy/package-all.ps1 產生：
+/* 新增一個版本，只含勾選的券商。assets.json 由產品的打包腳本產生（QtOrder 是 deploy/package-all.ps1）：
  * { version, assets: [{ broker, name, kind, size, sha256 }] }，可能含沒勾選的券商，這裡只取勾選的。
  * 有 components 時一併更新必要元件，與這次發布的安裝程式一致。 */
 export function publishRelease(data, { version, channel, sourceCommit, brokers, notesMarkdown, assetsJson, baseUrl, components, at = taipeiNow() }) {
-  const selected = checkPublishArgs({ version, channel, sourceCommit, brokers });
+  const product = productOf(data);
+  const selected = checkPublishArgs(product, { version, channel, sourceCommit, brokers });
   const start = startingPoint(data);
   const base = components === undefined ? start : applyComponents(start, components, { at });
   checkPublishable(base, { version, channel, brokers: selected });
@@ -241,8 +246,7 @@ export function publishRelease(data, { version, channel, sourceCommit, brokers, 
       if (matches.length !== 1) fail(`assets.json 的 ${broker}/${kind} 必須恰好一個`);
       const asset = matches[0];
       if (!Number.isSafeInteger(asset.size) || asset.size <= 0 || !/^[0-9a-f]{64}$/.test(asset.sha256)) fail('assets.json 缺少有效大小或雜湊');
-      const expectedName = kind === 'installer' ? `Setup_QtOrder_${broker}_v${version}.exe` : `QtOrder_${broker}_v${version}.zip`;
-      if (asset.name !== expectedName) fail('下載檔名與券商、版本或檔案種類不符');
+      if (asset.name !== assetName(product, kind, broker, version)) fail('下載檔名與產品、券商、版本或檔案種類不符');
       return { name: asset.name, broker, kind, size: asset.size, sha256: asset.sha256, url: `${baseUrl.replace(/\/$/, '')}/${encodeURIComponent(asset.name)}` };
     });
   });
@@ -277,11 +281,15 @@ function parseOptions(argv) {
 
 function main() {
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-  const dataPath = join(root, 'data/releases.json');
   const readJson = (path) => JSON.parse(readFileSync(path, 'utf8').replace(/^﻿/, ''));
   const [command, ...rest] = process.argv.slice(2);
   const options = parseOptions(rest);
+  const productId = options.product ?? 'qtorder';
+  if (!Object.hasOwn(PRODUCTS, productId)) fail(`不認得的產品：${productId}（只能是 ${Object.keys(PRODUCTS).join('、')}）`);
+  const product = PRODUCTS[productId];
+  const dataPath = join(root, product.record);
   const data = readJson(dataPath);
+  if (productOf(data) !== product) fail(`${product.record} 不是 ${product.name} 的發布紀錄`);
   const schema = readJson(join(root, 'data/releases.schema.json'));
   const components = options.components === undefined ? undefined : readJson(options.components);
   const common = {
@@ -319,7 +327,7 @@ function main() {
     if (components === undefined) fail('用法：release-record.js components --components <components.json>');
     next = applyComponents(data, components, common);
     if (next === data) {
-      console.log('必要元件沒有變動，不更新 data/releases.json');
+      console.log(`必要元件沒有變動，不更新 ${product.record}`);
       return;
     }
   } else {
@@ -329,7 +337,7 @@ function main() {
   const errors = validateReleaseData(next, schema);
   if (errors.length) fail(`發布紀錄驗證失敗：${errors.join('；')}`);
   writeFileSync(dataPath, `${JSON.stringify(next, null, 2)}\n`);
-  console.log(`已更新 data/releases.json：${command}${options.version ? ` v${options.version}` : ''}`);
+  console.log(`已更新 ${product.record}：${command}${options.version ? ` v${options.version}` : ''}`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
-import { BROKERS, buildUpdateManifest, minInstallerVersion } from '../assets/js/release-model.js';
+import { PRODUCTS, buildUpdateManifest, minInstallerVersion } from '../assets/js/release-model.js';
 import {
   applyComponents, parseReleaseNotes, planRelease, promoteRelease, publishRelease, releaseBaselines, taipeiNow,
 } from '../scripts/release-record.js';
@@ -11,6 +11,7 @@ const readJson = (path) => JSON.parse(readFileSync(new URL(`../${path}`, import.
 const schema = readJson('data/releases.schema.json');
 // 首發前的模擬資料；data/releases.json 首發後是正式紀錄，不能拿來當測試資料
 const mock = readJson('tests/fixtures/mock-releases.json');
+const BROKERS = PRODUCTS.qtorder.brokers;
 
 const commitA = 'a'.repeat(40);
 const commitB = 'b'.repeat(40);
@@ -269,6 +270,56 @@ describe('需要重新安裝', () => {
     assert.equal(manifest.preview.version, '1.8.0');
     assert.equal(manifest.preview.min_installer_version, '1.7.0');
     assert.deepEqual(validateReleaseData(data, schema), []);
+  });
+});
+
+describe('QtTrade（ADR-0006）', () => {
+  const qttradeMock = readJson('tests/fixtures/mock-qttrade-releases.json');
+  const tradeBaseUrl = (version) => `https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/qttrade-v${version}`;
+  const tradeAssets = (version, product = 'QtTrade') => ({
+    version,
+    assets: [
+      { broker: 'kgi', name: `Setup_${product}_kgi_v${version}.exe`, kind: 'installer', size: 151257088, sha256: 'e'.repeat(64) },
+      { broker: 'kgi', name: `${product}_kgi_v${version}.zip`, kind: 'update', size: 139722752, sha256: 'f'.repeat(64) },
+    ],
+  });
+  const tradePublish = (data, version, channel, { at = day(4), packaged } = {}) => publishRelease(data, {
+    version, channel, sourceCommit: commitA, brokers: ['kgi'], notesMarkdown: notes(), assetsJson: packaged ?? tradeAssets(version),
+    baseUrl: tradeBaseUrl(version), at,
+  });
+
+  it('首發清掉模擬資料，版本號與 tag 自成一條線', () => {
+    assert.throws(() => planPublish(qttradeMock, { version: '1.0.0', channel: 'preview', brokers: ['kgi'] }), /kgi 還沒有穩定版/);
+    const data = tradePublish(qttradeMock, '1.0.0', 'stable');
+    assert.equal(data.mock, false);
+    assert.equal(data.product.id, 'qttrade');
+    assert.deepEqual(data.minimumVersions, { kgi: '1.0.0' });
+    assert.equal(data.releases[0].releaseUrl, 'https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/qttrade-v1.0.0');
+    assert.equal(data.releases[0].assets[1].url, `${tradeBaseUrl('1.0.0')}/QtTrade_kgi_v1.0.0.zip`);
+    assert.deepEqual(validateReleaseData(data, schema), []);
+    assert.equal(buildUpdateManifest(data).brokers.kgi.stable.version, '1.0.0');
+  });
+
+  it('只接受 kgi 與 QtTrade 的檔名', () => {
+    assert.throws(() => planPublish(qttradeMock, { version: '1.0.0', channel: 'stable', brokers: ['taishin'] }), /QtTrade 只能是 kgi/);
+    assert.throws(() => tradePublish(qttradeMock, '1.0.0', 'stable', { packaged: tradeAssets('1.0.0', 'QtOrder') }), /檔名/);
+    assert.throws(() => planPublish(mock, { version: '1.6.0', channel: 'stable', brokers: ['kgi'] }), /QtOrder 只能是/);
+  });
+
+  it('比較基準只列 kgi', () => {
+    const data = tradePublish(qttradeMock, '1.0.0', 'stable');
+    assert.deepEqual(releaseBaselines(data, { version: '1.0.1' }), {
+      versionPublished: false, brokers: { kgi: { version: '1.0.0', sourceCommit: commitA } },
+    });
+  });
+
+  it('預覽版晉升後成為新的穩定版', () => {
+    let data = tradePublish(qttradeMock, '1.0.0', 'stable');
+    data = tradePublish(data, '1.1.0', 'preview', { at: day(5) });
+    assert.deepEqual(planPromote(data, '1.1.0'), { action: 'promote', version: '1.1.0', brokers: ['kgi'] });
+    data = promoteRelease(data, { version: '1.1.0', at: day(6) });
+    assert.deepEqual(validateReleaseData(data, schema), []);
+    assert.equal(buildUpdateManifest(data).brokers.kgi.stable.version, '1.1.0');
   });
 });
 

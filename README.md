@@ -1,22 +1,32 @@
 # QtOrderRelease
 
-QtOrder 的發布中心：以 GitHub Pages 提供各版本的版本說明、下載檔案與 SHA-256，並產生 QtOrder 啟動器讀取的更新清單。
-用語（預覽版、穩定版、晉升、撤回、最低支援版本…）以 [CONTEXT.md](CONTEXT.md) 為準；為什麼這樣設計見 [docs/adr/](docs/adr/)。
+QtOrder 與 QtTrade 的發布中心：以 GitHub Pages 提供各版本的版本說明、下載檔案與 SHA-256，並產生各產品啟動器讀取的更新清單。
+用語（產品、預覽版、穩定版、晉升、撤回、最低支援版本…）以 [CONTEXT.md](CONTEXT.md) 為準；為什麼這樣設計見 [docs/adr/](docs/adr/)。
 
-> `data/releases.json` 自 2026-10-13 首發 v1.6.0 起是正式的發布紀錄，不要拿來當測試資料或手動改成模擬資料。
-> 測試用的模擬資料在 `tests/fixtures/mock-releases.json`（`"mock": true` 時頁面頂端顯示提示，部署時自動加上 `noindex`）。
+兩個產品是不同的程式，只共用發布頁面與存放下載檔案的 GitHub Releases；發布紀錄、版本號、tag 與更新清單各自獨立（[ADR-0006](docs/adr/0006-qttrade-as-separate-product.md)）：
+
+| 產品 | 券商識別 | 發布紀錄 | 更新清單 | tag | 安裝程式／更新套件 |
+| --- | --- | --- | --- | --- | --- |
+| QtOrder | `taishin`、`zf-mega`、`capital` | `data/releases.json` | `update.json` | `v<版本>` | `Setup_QtOrder_<券商>_v<版本>.exe`／`QtOrder_<券商>_v<版本>.zip` |
+| QtTrade（凱基專用） | `kgi` | `data/qttrade/releases.json` | `qttrade/update.json` | `qttrade-v<版本>` | `Setup_QtTrade_kgi_v<版本>.exe`／`QtTrade_kgi_v<版本>.zip` |
+
+產品定義（券商、路徑、tag 前綴）在 `assets/js/release-model.js` 的 `PRODUCTS`。QtTrade 首發前（發布紀錄沒有任何版本），頁面不顯示它的區塊與產品導覽，也不產生 `qttrade/update.json`。
+
+> `data/releases.json` 自 2026-10-13 首發 v1.6.0 起是正式的發布紀錄，不要拿來當測試資料或手動改成模擬資料；`data/qttrade/releases.json` 同理。
+> 測試用的模擬資料在 `tests/fixtures/mock-releases.json` 與 `tests/fixtures/mock-qttrade-releases.json`（`"mock": true` 時頁面頂端顯示提示，部署時自動加上 `noindex`）。
 
 ## 結構
 
 ```text
-index.html                    頁面骨架（純靜態）
-assets/js/app.js              讀取發布紀錄並渲染頁面
-assets/js/release-model.js    發布規則：各券商的最新版本、更新清單、跨欄位檢查；頁面與建置腳本共用
+index.html                    頁面骨架（純靜態）；QtOrder 與 QtTrade 各一個產品區塊
+assets/js/app.js              讀取各產品的發布紀錄並渲染頁面
+assets/js/release-model.js    產品定義與發布規則：各券商的最新版本、更新清單、跨欄位檢查；頁面與建置腳本共用
 assets/css/site.css           樣式；版型參考 apple.com，只有淺色配色，色彩集中在 :root 的語意 token（已標註 WCAG AA 對比值）
-data/releases.json            發布紀錄，唯一的資料來源
-data/releases.schema.json     發布紀錄的 JSON Schema
-scripts/build-site.js         驗證發布紀錄，輸出網站與更新清單（_site/update.json）
-scripts/release-record.js     QtOrder 的 CI 與發布 workflow 呼叫：各券商的比較基準、發布與晉升前的檢查、寫入新版本、晉升
+data/releases.json            QtOrder 的發布紀錄，唯一的資料來源
+data/qttrade/releases.json    QtTrade 的發布紀錄
+data/releases.schema.json     發布紀錄的 JSON Schema（兩個產品共用）
+scripts/build-site.js         驗證各產品的發布紀錄，輸出網站與更新清單（_site/update.json、_site/qttrade/update.json）
+scripts/release-record.js     QtOrder 的 CI 與發布 workflow、QtTrade 的發布腳本呼叫：各券商的比較基準、發布與晉升前的檢查、寫入新版本、晉升
 tests/                        發布規則與發布紀錄腳本的測試；模擬資料在 tests/fixtures/
 .github/workflows/pages.yml   PR 時驗證；合併到 main 後建置並部署 Pages
 ```
@@ -26,8 +36,8 @@ tests/                        發布規則與發布紀錄腳本的測試；模�
 ```powershell
 npm ci
 npm test          # 發布規則測試
-npm run check     # 只驗證 data/releases.json
-npm run build     # 驗證後輸出 _site/（含 update.json）
+npm run check     # 只驗證各產品的發布紀錄
+npm run build     # 驗證後輸出 _site/（含各產品的更新清單）
 python -m http.server 8080 --directory _site   # 開啟 http://localhost:8080/
 ```
 
@@ -38,7 +48,8 @@ python -m http.server 8080 --directory _site   # 開啟 http://localhost:8080/
 Settings → Pages → Build and deployment → Source 選 **GitHub Actions**。之後每次合併到 `main` 都會自動部署：
 
 - 發布中心：`https://projectontitan.github.io/QtOrderRelease/`
-- 更新清單：`https://projectontitan.github.io/QtOrderRelease/update.json`
+- QtOrder 更新清單：`https://projectontitan.github.io/QtOrderRelease/update.json`
+- QtTrade 更新清單：`https://projectontitan.github.io/QtOrderRelease/qttrade/update.json`（首發後才有）
 
 GitHub Pages 約有 10 分鐘快取，發布後客戶最多晚 10 分鐘看到新版本。
 
@@ -57,16 +68,21 @@ QtOrder 推到 `main` 時，CI 只打包自上次發布以來有異動的券商�
 | 撤回 | 手動發 PR | 填入 `withdrawn: { at, reason }`，並刪除該 GitHub Release 上的檔案。撤回不會強制已安裝的客戶更新；要強制，另外提高那幾家的 `minimumVersions` |
 | 調整最低支援版本 | 手動發 PR | 修改 `minimumVersions` 裡那一家的版本，必須是包含這家的未撤回穩定版 |
 
+QtTrade 的發布與晉升由 QtTrade repo 的本機發布腳本（`build/release.ps1`）執行，以 `--product qttrade` 呼叫同一支
+`scripts/release-record.js`，再以維護者身分 commit 到本 repo 的 `main`；GitHub Release 的 tag 是 `qttrade-v<版本>`，以 `--latest=false` 建立。
+版本說明寫在 QtTrade 的 `release-notes/<版本>.md`，格式與 QtOrder 相同。規則與上表相同，撤回與調整最低支援版本同樣手動發 PR。
+
 已發布的版本不補發其他券商，要發布另一家就升版號。每次修改都要更新 `generatedAt`。
 CI 會擋下這些錯誤：版本號帶預覽標記、重複或沒有隨發布時間遞增；某家成為穩定版的版本號沒有遞增；包含的券商缺少安裝程式或更新套件；
 某家的最低支援版本不是包含這家的未撤回穩定版。`scripts/release-record.js` 寫入前也跑同一套驗證；版本號或券商不對時，QtOrder 的 workflow 在建立 GitHub Release 之前就會失敗。
 
 ## 發布紀錄重點
 
-完整定義見 [`data/releases.schema.json`](data/releases.schema.json)。目前是 schemaVersion 3（與更新清單的 schemaVersion 無關）。
+完整定義見 [`data/releases.schema.json`](data/releases.schema.json)。目前是 schemaVersion 3（與更新清單的 schemaVersion 無關），兩個產品共用。
 
 | 欄位 | 說明 |
 | --- | --- |
+| `product.id` | 產品識別：`qttrade`；省略時是 QtOrder（QtOrder 的發布紀錄早於多產品，沒有這個欄位） |
 | `minimumVersions` | 各券商的最低支援版本，例如 `{ "capital": "1.6.0" }`；還沒有任何版本的券商不能設定 |
 | `product.requirements`、`product.brokerRequirements` | 系統需求與各券商的前置條件 |
 | `product.components` | 各券商需要另外安裝的元件、用途、適用券商與官方載點（只接受 https）；QtOrder 安裝程式缺少時會自動安裝（QtOrder ADR-0047）。不要手動編輯：QtOrder 發布時以打包 commit 的 `deploy/prerequisites.ps1 -Action Export` 寫入（QtOrder ADR-0049）；沒有新版本、只改元件時，在本機匯出後執行 `node scripts/release-record.js components --components <components.json>` 再發 PR |
@@ -74,17 +90,17 @@ CI 會擋下這些錯誤：版本號帶預覽標記、重複或沒有隨發布�
 | `releases[].channel` | `preview` 或 `stable`，晉升時改變 |
 | `releases[].publishedAt`、`promotedAt` | 第一次發布、晉升為穩定版的時間 |
 | `releases[].withdrawn` | 撤回時間與原因 |
-| `releases[].sourceCommit` | 建置來源的 QtOrder commit；QtOrder 以各家最近一個版本的它判斷有沒有異動、是否需要重新安裝 |
-| `releases[].requiresInstaller` | 需重新安裝：這個版本更新了券商元件或啟動器，啟動器不會套用更新套件 |
+| `releases[].sourceCommit` | 建置來源在產品 repo 的 commit；QtOrder 以各家最近一個版本的它判斷有沒有異動、是否需要重新安裝 |
+| `releases[].requiresInstaller` | 需重新安裝：這個版本更新了券商元件、啟動器或安裝程式，啟動器不會套用更新套件 |
 | `releases[].summary` | 一句話摘要，也是啟動器更新提示的內容 |
 | `releases[].notes` | 版本說明：`upgradeNotes`（升級須知）、`features`、`improvements`、`fixes`、`knownIssues` |
 | `releases[].assets` | 包含的每家各一個 `installer` 與 `update`，一家 2 個、最多 6 個；各含 `broker`、`size` 與 `sha256`。版本包含哪些券商由這裡推導 |
 
 各通道的最新版本按券商各自取包含它、未撤回的最高版本號；某家的預覽版沒有比它的穩定版新時，頁面提示改用穩定版，更新清單的 `preview` 也指向穩定版。
 
-## 更新清單（`update.json`）
+## 更新清單（`update.json`、`qttrade/update.json`）
 
-更新清單使用 schemaVersion 2，先選券商，再讀發布通道。各家的版本可能不同；還沒有穩定版的券商不列入。
+兩個產品的更新清單格式相同，各自只列自己的券商。更新清單使用 schemaVersion 2，先選券商，再讀發布通道。各家的版本可能不同；還沒有穩定版的券商不列入。
 啟動器缺自身券商或券商識別不符時拒絕更新、照常啟動本機版本，不回退其他券商。
 
 ```json
