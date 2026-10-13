@@ -348,6 +348,8 @@ function renderHistory() {
   host.removeAttribute('aria-busy');
 
   const rest = list.length - shown.length;
+  // 還有較早的版本時，時間軸延伸到列表底部並淡出，提示可以往下載入
+  host.classList.toggle('release-list--more', rest > 0);
   const more = $('#load-more');
   more.hidden = rest <= 0;
   more.querySelector('[data-label]').textContent = `顯示較早的版本（還有 ${rest} 個）`;
@@ -379,7 +381,12 @@ function releaseItem(release) {
     else state.open.add(release.version);
   });
 
+  // 時間軸：寬螢幕在左側顯示發布日期，節點顏色對應通道；兩者都只是視覺輔助，日期與通道已寫在卡片標題列
   return el('li', { class: `release release--${release.channel}${withdrawn ? ' release--withdrawn' : ''}`, id },
+    el('p', { class: 'release__when', 'aria-hidden': 'true' },
+      el('span', { class: 'release__when-date' }, formatDate(release.publishedAt)),
+      el('span', { class: 'release__when-relative' }, formatRelative(release.publishedAt))),
+    el('span', { class: 'release__marker', 'aria-hidden': 'true' }),
     el('article', { class: 'release__card', 'aria-labelledby': toggle.id },
       el('h3', { class: 'release__heading' }, toggle),
       release.summary && el('p', { class: 'release__summary' }, release.summary),
