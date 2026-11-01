@@ -2,7 +2,7 @@
   "$schema": "./releases.schema.json",
   "schemaVersion": 3,
   "mock": false,
-  "generatedAt": "2026-10-13T21:33:56+08:00",
+  "generatedAt": "2026-11-01T21:29:35+08:00",
   "minimumVersions": {
     "taishin": "1.6.0",
     "zf-mega": "1.6.0",
@@ -69,6 +69,95 @@
     ]
   },
   "releases": [
+    {
+      "version": "1.6.2",
+      "channel": "stable",
+      "publishedAt": "2026-11-01T21:29:35+08:00",
+      "sourceCommit": "81cb963430f72903ac8778bbfc1d62ef8f462643",
+      "requiresInstaller": true,
+      "summary": "開始下單整合券商登入與初始化進度，策略授權改用寶錸正式主機，並加入每日重啟自動更新。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.6.2",
+      "notes": {
+        "upgradeNotes": [
+          "這一版需要重新執行安裝程式：請從發布中心下載所使用券商的 1.6.2 安裝程式，安裝至原本資料夾，不需先解除安裝；舊啟動器無法只靠更新套件取得這次的啟動器功能",
+          "策略訊號改用顧問提供的 API 金鑰取得授權商品與訊號通道，請在「設定 → 授權」確認軟體授權碼及策略授權 API 金鑰；原有共用訊號金鑰不再使用",
+          "功能列不再提供獨立的「登入券商」，請按「開始下單」依序完成檢核及登入；XQ 自動下單也必須先完成開始下單，停止下單後不再依 XQ 訊號自動送單",
+          "兆豐客戶請在「設定 → 券商登入」填入開戶資料上的分公司代號與證券帳號，缺少或格式不符時無法開始下單",
+          "策略授權正式主機改為 api.bullion.com.tw；已有本機網址覆寫的電腦仍沿用原設定，請由券商或維護人員確認連線目標"
+        ],
+        "features": [
+          "開始下單顯示八階段進度，包含設定、授權、券商元件、登入、帳號載入、身分核對與訊號通道；支援取消、失敗原因提示及重新啟動",
+          "每日重啟會先由新版啟動器檢查更新，遇到可直接更新的版本會下載並驗證，再重新登入及開始下單；需重新安裝的版本則通知客戶處理",
+          "策略授權商品與券商最大庫存金額由平台同步，並於開始下單前核對券商登入身分與軟體授權持有人",
+          "支援 ETF 與 ETN 的價格級距及近漲跌停價計算"
+        ],
+        "improvements": [
+          "主畫面改為深色儀表板，提供狀態燈、策略參數視窗及面板展開收合，帳密集中至設定視窗",
+          "授權碼與策略授權 API 金鑰以遮蔽欄位顯示，狀態文字不再重複顯示金鑰片段",
+          "登入前檢查券商元件，缺少註冊時提供說明與處理引導；自動重連不會反覆要求註冊",
+          "系統紀錄與 Telegram 通知統一用語及錯誤處理提示，例行查詢與恢復訊息減少重複通知"
+        ],
+        "fixes": [
+          "修正軟體授權驗證連不上授權主機時仍可能顯示已驗證的問題",
+          "修正群益整股與零股委託的價格及送出結果判斷，整股限價失敗時不會改用市價重送",
+          "修正群益重複註冊回報事件及手動委託未執行券商層風控檢查的問題",
+          "台新元件不再使用不適用的註冊方式，並修正視窗、輸入框與按鈕的顯示及對齊"
+        ],
+        "knownIssues": [
+          "群益成交回報目前記錄在下單機的系統紀錄，暫不推送 Telegram 成交通知，以避免重新登入時重複推送當日回補的成交"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtOrder_taishin_v1.6.2.exe",
+          "broker": "taishin",
+          "kind": "installer",
+          "size": 22704008,
+          "sha256": "82df9ecc1ba29becac3029850e735cbb8acffd391e743890cabf706247429572",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.2/Setup_QtOrder_taishin_v1.6.2.exe"
+        },
+        {
+          "name": "QtOrder_taishin_v1.6.2.zip",
+          "broker": "taishin",
+          "kind": "update",
+          "size": 22858954,
+          "sha256": "f8c3b16f2b908a668623907fd079f7c96a3906ffc52634e068129d0b885212c8",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.2/QtOrder_taishin_v1.6.2.zip"
+        },
+        {
+          "name": "Setup_QtOrder_zf-mega_v1.6.2.exe",
+          "broker": "zf-mega",
+          "kind": "installer",
+          "size": 17790167,
+          "sha256": "6d47346c6bbdd866f547257345f20200d1d0d61cd243d1a12ef9419847854704",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.2/Setup_QtOrder_zf-mega_v1.6.2.exe"
+        },
+        {
+          "name": "QtOrder_zf-mega_v1.6.2.zip",
+          "broker": "zf-mega",
+          "kind": "update",
+          "size": 16707014,
+          "sha256": "efa5b684bcda174a5bdc04fd8174fd567c0110aded519fab0dee79c6235afdfb",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.2/QtOrder_zf-mega_v1.6.2.zip"
+        },
+        {
+          "name": "Setup_QtOrder_capital_v1.6.2.exe",
+          "broker": "capital",
+          "kind": "installer",
+          "size": 26416547,
+          "sha256": "af4ff133f45d2721a41619ef3c9fe7a472c61d52961b9e884d6b750554ae68eb",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.2/Setup_QtOrder_capital_v1.6.2.exe"
+        },
+        {
+          "name": "QtOrder_capital_v1.6.2.zip",
+          "broker": "capital",
+          "kind": "update",
+          "size": 27562880,
+          "sha256": "67299379bca4a8aeb5a12bd9f5e1d4c4c49a594877249bcd59e9d4347f0cc190",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.2/QtOrder_capital_v1.6.2.zip"
+        }
+      ]
+    },
     {
       "version": "1.6.1",
       "channel": "stable",
