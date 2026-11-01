@@ -2,11 +2,11 @@
   "$schema": "./releases.schema.json",
   "schemaVersion": 3,
   "mock": false,
-  "generatedAt": "2026-11-01T22:27:07+08:00",
+  "generatedAt": "2026-11-01T22:57:50+08:00",
   "minimumVersions": {
-    "taishin": "1.6.0",
-    "zf-mega": "1.6.0",
-    "capital": "1.6.0"
+    "taishin": "1.6.3",
+    "zf-mega": "1.6.3",
+    "capital": "1.6.3"
   },
   "product": {
     "name": "QtOrder",
