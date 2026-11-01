@@ -2,7 +2,7 @@
   "$schema": "./releases.schema.json",
   "schemaVersion": 3,
   "mock": false,
-  "generatedAt": "2026-11-01T21:29:35+08:00",
+  "generatedAt": "2026-11-01T22:06:11+08:00",
   "minimumVersions": {
     "taishin": "1.6.0",
     "zf-mega": "1.6.0",
@@ -69,6 +69,73 @@
     ]
   },
   "releases": [
+    {
+      "version": "1.6.3",
+      "channel": "stable",
+      "publishedAt": "2026-11-01T22:06:11+08:00",
+      "sourceCommit": "7c5971ba9bfe96bdd7bcb4743c9779d2958d20a5",
+      "summary": "修正軟體授權的離線票證全部驗證失敗的問題，恢復離線保護與開始下單前的身分核對。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.6.3",
+      "notes": {
+        "upgradeNotes": [
+          "這一版的最低支援版本調整為 1.6.3，低於此版本的下單機必須更新後才能啟動",
+          "已安裝 1.6.2 的電腦由啟動器自動更新，不需重新安裝；1.6.1 以前的版本請從發布中心下載所使用券商的 1.6.3 安裝程式，安裝至原本資料夾，不需先解除安裝"
+        ],
+        "fixes": [
+          "修正啟動或開始下單時出現「收到的離線票證驗證失敗，未存檔：離線票證的 keyId 與本機公鑰的 keyId 不符」的問題：更新後可正常保存授權主機發出的離線票證，連不上授權主機時依票證期限繼續運作，開始下單前的身分核對也恢復正常"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtOrder_taishin_v1.6.3.exe",
+          "broker": "taishin",
+          "kind": "installer",
+          "size": 22704048,
+          "sha256": "d17c1236735e6eb73664a8efc547c594c01fa13a73d1ec7dead24bedaa5385c5",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.3/Setup_QtOrder_taishin_v1.6.3.exe"
+        },
+        {
+          "name": "QtOrder_taishin_v1.6.3.zip",
+          "broker": "taishin",
+          "kind": "update",
+          "size": 22858984,
+          "sha256": "70bd5cfcf1593c7e52cfe6ac3ec283cf762210fa5938ff8344abba0bd3230037",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.3/QtOrder_taishin_v1.6.3.zip"
+        },
+        {
+          "name": "Setup_QtOrder_zf-mega_v1.6.3.exe",
+          "broker": "zf-mega",
+          "kind": "installer",
+          "size": 17790190,
+          "sha256": "6bee4d1f977bbd3e93af8dff841a36fcbb88d639a5fa7309491efa538f182df0",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.3/Setup_QtOrder_zf-mega_v1.6.3.exe"
+        },
+        {
+          "name": "QtOrder_zf-mega_v1.6.3.zip",
+          "broker": "zf-mega",
+          "kind": "update",
+          "size": 16707051,
+          "sha256": "3abc41c2525cca88ab6b7a3bd5579d6b85ea5eadcbedc530f73c7fe883d7174f",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.3/QtOrder_zf-mega_v1.6.3.zip"
+        },
+        {
+          "name": "Setup_QtOrder_capital_v1.6.3.exe",
+          "broker": "capital",
+          "kind": "installer",
+          "size": 26416581,
+          "sha256": "2542ddd6ccd467b51a3050cdc357e8dfb2711b9a047141669cf8183e5e49caf1",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.3/Setup_QtOrder_capital_v1.6.3.exe"
+        },
+        {
+          "name": "QtOrder_capital_v1.6.3.zip",
+          "broker": "capital",
+          "kind": "update",
+          "size": 27562912,
+          "sha256": "35d5d05a4f108445d207a1a4b4ca3744c755b7cdcb99c33a13bc38621151a720",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.3/QtOrder_capital_v1.6.3.zip"
+        }
+      ]
+    },
     {
       "version": "1.6.2",
       "channel": "stable",
