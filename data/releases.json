@@ -2,7 +2,7 @@
   "$schema": "./releases.schema.json",
   "schemaVersion": 3,
   "mock": false,
-  "generatedAt": "2026-11-01T22:06:11+08:00",
+  "generatedAt": "2026-11-01T22:27:07+08:00",
   "minimumVersions": {
     "taishin": "1.6.0",
     "zf-mega": "1.6.0",
@@ -69,6 +69,78 @@
     ]
   },
   "releases": [
+    {
+      "version": "1.6.4",
+      "channel": "stable",
+      "publishedAt": "2026-11-01T22:27:07+08:00",
+      "sourceCommit": "6134a55020709349c83995b1e10942df0c45fba6",
+      "summary": "新增券商測試登入，修正策略授權首次輸入金鑰卻提示尚未輸入的問題。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.6.4",
+      "notes": {
+        "upgradeNotes": [
+          "已安裝 1.6.2 或以上版本的電腦可透過啟動器更新，不需重新安裝；更舊的安裝請下載所使用券商的 1.6.4 安裝程式，安裝至原本資料夾",
+          "測試登入會連線實際券商，請先停止下單並登出，再於「設定 → 券商登入」測試；測試不開始下單，也不代替委託簽章及送單權限的確認"
+        ],
+        "features": [
+          "「設定 → 券商登入」加入「測試登入」，直接使用目前尚未儲存的帳密、憑證與兆豐開戶資料驗證連線及帳號載入，完成後結束測試，不改寫設定",
+          "測試提供等待狀態、成功或失敗原因、取消及逾時清理；關閉設定視窗時會先取消並清理測試程序"
+        ],
+        "fixes": [
+          "修正首次輸入策略授權 API 金鑰並點選「驗證策略」時，仍誤報「尚未輸入 API 金鑰」的問題",
+          "「驗證策略」與「儲存設定」優先使用目前輸入的金鑰，只有欄位留空時才沿用已保存的金鑰"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtOrder_taishin_v1.6.4.exe",
+          "broker": "taishin",
+          "kind": "installer",
+          "size": 22709236,
+          "sha256": "e556f3b43e0acdb2b652ea787b9a1030accf8049bf21eb599a677a7e180d7b14",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.4/Setup_QtOrder_taishin_v1.6.4.exe"
+        },
+        {
+          "name": "QtOrder_taishin_v1.6.4.zip",
+          "broker": "taishin",
+          "kind": "update",
+          "size": 22866625,
+          "sha256": "4248da511e16af802eae194fa83a4b6fb114a1084b3e553e892adb0dc426166c",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.4/QtOrder_taishin_v1.6.4.zip"
+        },
+        {
+          "name": "Setup_QtOrder_zf-mega_v1.6.4.exe",
+          "broker": "zf-mega",
+          "kind": "installer",
+          "size": 17795543,
+          "sha256": "260d360c3b5f6dd816833a3282fcfcb49c86bacd6ccf2e0e305d607b9b41520f",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.4/Setup_QtOrder_zf-mega_v1.6.4.exe"
+        },
+        {
+          "name": "QtOrder_zf-mega_v1.6.4.zip",
+          "broker": "zf-mega",
+          "kind": "update",
+          "size": 16713305,
+          "sha256": "b96d7456c84b32adc0715a2d00d9e1b89f68204842ecb6d8aa05ef5d49733d84",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.4/QtOrder_zf-mega_v1.6.4.zip"
+        },
+        {
+          "name": "Setup_QtOrder_capital_v1.6.4.exe",
+          "broker": "capital",
+          "kind": "installer",
+          "size": 26422238,
+          "sha256": "30a66481b0b71b8cf67055d68a3cf4b4281735a39343a7ac137b57f73fb17f58",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.4/Setup_QtOrder_capital_v1.6.4.exe"
+        },
+        {
+          "name": "QtOrder_capital_v1.6.4.zip",
+          "broker": "capital",
+          "kind": "update",
+          "size": 27569325,
+          "sha256": "df35542bb73308e9318d1e68d3dfc13cefe7f533b962b4da5d1a2b9a6f71a785",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.4/QtOrder_capital_v1.6.4.zip"
+        }
+      ]
+    },
     {
       "version": "1.6.3",
       "channel": "stable",
