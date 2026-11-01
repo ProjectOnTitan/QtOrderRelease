@@ -2,7 +2,7 @@
   "$schema": "./releases.schema.json",
   "schemaVersion": 3,
   "mock": false,
-  "generatedAt": "2026-11-01T23:14:00+08:00",
+  "generatedAt": "2026-11-02T02:52:12+08:00",
   "minimumVersions": {
     "taishin": "1.6.3",
     "zf-mega": "1.6.3",
@@ -69,6 +69,81 @@
     ]
   },
   "releases": [
+    {
+      "version": "1.6.6",
+      "channel": "preview",
+      "publishedAt": "2026-11-02T02:52:12+08:00",
+      "sourceCommit": "c02a36c29e4ea4f9fa5c4019bf16633844c43cce",
+      "requiresInstaller": true,
+      "summary": "新增可選的身分核對測試設定，並修正下載引導頁面。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.6.6",
+      "notes": {
+        "upgradeNotes": [
+          "請下載所使用券商的 1.6.6 預覽版安裝程式，安裝至原本資料夾；啟動器的下載引導修正需透過新版安裝程式取得",
+          "身分核對測試設定預設關閉，一般使用維持原有檢核；需要測試例外時請由顧問協助設定，測試完成後關閉設定並重新啟動程式"
+        ],
+        "features": [
+          "提供可暫時略過本人身分與券商核對的本機測試設定，開始下單與票證更新時都會在系統紀錄標示測試例外",
+          "測試例外仍須通過票證驗證、軟體授權、策略授權與下單風控；關閉設定後恢復身分與券商核對"
+        ],
+        "fixes": [
+          "啟動、更新與券商元件修復的下載引導會直接開啟所使用券商的下載頁面"
+        ],
+        "knownIssues": [
+          "身分核對的測試例外不會更正授權資料；券商代碼與授權持有人資料仍須後續確認及修正"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtOrder_taishin_v1.6.6.exe",
+          "broker": "taishin",
+          "kind": "installer",
+          "size": 22709387,
+          "sha256": "3fe81c9d66ca11b328fa6875751b97377cd8ac11b98e9aad7e6228bc400e05af",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.6/Setup_QtOrder_taishin_v1.6.6.exe"
+        },
+        {
+          "name": "QtOrder_taishin_v1.6.6.zip",
+          "broker": "taishin",
+          "kind": "update",
+          "size": 22866927,
+          "sha256": "e93880357246d9cd4e8d985b04ae32a864ab52eeda89b0569a90413361f3665b",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.6/QtOrder_taishin_v1.6.6.zip"
+        },
+        {
+          "name": "Setup_QtOrder_zf-mega_v1.6.6.exe",
+          "broker": "zf-mega",
+          "kind": "installer",
+          "size": 17795750,
+          "sha256": "c61ff7368e871f463b0a5b537ebd3ba80faba63a2afff88346c5a10aad81d123",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.6/Setup_QtOrder_zf-mega_v1.6.6.exe"
+        },
+        {
+          "name": "QtOrder_zf-mega_v1.6.6.zip",
+          "broker": "zf-mega",
+          "kind": "update",
+          "size": 16713529,
+          "sha256": "d42e835381c4018ff063c579457a720d6dc182b16729555ad139b88496e62842",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.6/QtOrder_zf-mega_v1.6.6.zip"
+        },
+        {
+          "name": "Setup_QtOrder_capital_v1.6.6.exe",
+          "broker": "capital",
+          "kind": "installer",
+          "size": 26422381,
+          "sha256": "8ac6d83cd6f4735abfe09be6b906c55a31b59c1baec12e61fc75a1dc97402d22",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.6/Setup_QtOrder_capital_v1.6.6.exe"
+        },
+        {
+          "name": "QtOrder_capital_v1.6.6.zip",
+          "broker": "capital",
+          "kind": "update",
+          "size": 27569673,
+          "sha256": "9ff24de380c1293f8e8269fe6a0cdef0487b72fe076273ed2162c97fe357dfab",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.6/QtOrder_capital_v1.6.6.zip"
+        }
+      ]
+    },
     {
       "version": "1.6.5",
       "channel": "stable",
