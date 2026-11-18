@@ -4,4 +4,8 @@
 
 ## Git／版本控制
 
-- **原子化任務提交（Atomic Commits）**：在執行 Git 提交（commit）時，必須將每次的檔案異動依照「單一職責的原子化任務」進行邏輯拆分，分別建立獨立且具備清晰語意（Conventional Commits）的 commit，禁止將多個不相關的功能修改、重構或設定變更混雜在同一個 commit 中。
+- 依單一職責拆分提交：每個 commit 只含一項功能修改、重構或設定變更，各自使用 Conventional Commits，方便逐項審查與回退。
+
+## 發布
+
+- push 到 `main` 會由 `.github/workflows/pages.yml` 把發布頁與更新清單直接部署給客戶。push、手動觸發 workflow，或修改 `data/releases.json`、`data/qttrade/releases.json` 之前，先說明影響範圍並取得使用者同意。
