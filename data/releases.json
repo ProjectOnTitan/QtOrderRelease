@@ -2,7 +2,7 @@
   "$schema": "./releases.schema.json",
   "schemaVersion": 3,
   "mock": false,
-  "generatedAt": "2026-11-27T14:52:13+08:00",
+  "generatedAt": "2026-11-27T15:27:20+08:00",
   "minimumVersions": {
     "taishin": "1.6.3",
     "zf-mega": "1.6.3",
@@ -69,6 +69,74 @@
     ]
   },
   "releases": [
+    {
+      "version": "1.6.8",
+      "channel": "preview",
+      "publishedAt": "2026-11-27T15:27:20+08:00",
+      "sourceCommit": "5bb6e858b45ed610b85040f7ea9c01d9888cf695",
+      "summary": "修正倍數模式非零訊號保底 1 股防護、簡化問題診斷紀錄為本機一鍵打包至桌面、修正兆豐盤後零股刪單時段判定，以及修正群益盤後零股下單時段切換。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.6.8",
+      "notes": {
+        "features": [
+          "一鍵打包問題診斷紀錄：設定視窗之問題診斷紀錄簡化為本機一鍵打包功能，自動匯出系統環境與最近 3 天去敏日誌為壓縮檔儲存於桌面，生成 6 碼診斷代碼並自動開啟檔案所在位置，免去雲端連線等待。"
+        ],
+        "fixes": [
+          "策略倍數非零訊號保底機制：修正策略在倍數模式下，當訊號目標股數小於 0.5 張（500 股）經四捨五入計算可能歸零的問題，增設非零訊號至少保底 1 股（買進保底 +1 股、賣出保底 -1 股）防護機制。",
+          "兆豐證券盤後零股刪單修正：手動刪單加入時段記憶與動態判定，於盤後時段（13:35～14:30）自動帶入盤後零股代碼（O），修正盤後手動刪單被券商拒絕「502011:非交易時間盤中單無法修改刪單」的問題。",
+          "群益證券盤後零股下單修正：零股下單加入交易時段動態判定，於盤後時段（13:35～14:30）自動將時段切換為盤後零股（sPeriod = 2）並改走限價委託 API 送單，修正盤後零股委託被券商主機以「盤中零股目前停止收單狀態」退單之問題。"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtOrder_taishin_v1.6.8.exe",
+          "broker": "taishin",
+          "kind": "installer",
+          "size": 22815054,
+          "sha256": "3eac7f76f21f475a1a3c50d9190ba2fd0f9cbada3b6e6322ed6befa11a203cdf",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.8/Setup_QtOrder_taishin_v1.6.8.exe"
+        },
+        {
+          "name": "QtOrder_taishin_v1.6.8.zip",
+          "broker": "taishin",
+          "kind": "update",
+          "size": 22935578,
+          "sha256": "c616b70f33dac428a4bd055068941ba103c32713e8f8bee8b132e52125418579",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.8/QtOrder_taishin_v1.6.8.zip"
+        },
+        {
+          "name": "Setup_QtOrder_zf-mega_v1.6.8.exe",
+          "broker": "zf-mega",
+          "kind": "installer",
+          "size": 17833372,
+          "sha256": "b6e5dbc20d9704be693af3356d7fb245d78b3f2cb6d5b8e76a24a22ee16fdba2",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.8/Setup_QtOrder_zf-mega_v1.6.8.exe"
+        },
+        {
+          "name": "QtOrder_zf-mega_v1.6.8.zip",
+          "broker": "zf-mega",
+          "kind": "update",
+          "size": 16779034,
+          "sha256": "9603db616b8afce0414c99cba21d91cf1f7e56c1357dc552bceb5d16dadc6843",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.8/QtOrder_zf-mega_v1.6.8.zip"
+        },
+        {
+          "name": "Setup_QtOrder_capital_v1.6.8.exe",
+          "broker": "capital",
+          "kind": "installer",
+          "size": 26517664,
+          "sha256": "a489f7a7b1d73bc5c57dad7e3440511cd93c0902b7b5dc20acebbb748b7d9ae9",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.8/Setup_QtOrder_capital_v1.6.8.exe"
+        },
+        {
+          "name": "QtOrder_capital_v1.6.8.zip",
+          "broker": "capital",
+          "kind": "update",
+          "size": 27633879,
+          "sha256": "dcc8442107fcb968f38674d18d1cba1d8d938d475bd33960f894ef89698e5438",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.8/QtOrder_capital_v1.6.8.zip"
+        }
+      ]
+    },
     {
       "version": "1.6.7",
       "channel": "stable",
