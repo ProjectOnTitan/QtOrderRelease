@@ -4,9 +4,9 @@
   "mock": false,
   "generatedAt": "2026-11-28T12:25:10+08:00",
   "minimumVersions": {
-    "taishin": "1.6.3",
-    "zf-mega": "1.6.3",
-    "capital": "1.6.3"
+    "taishin": "1.6.9",
+    "zf-mega": "1.6.9",
+    "capital": "1.6.9"
   },
   "product": {
     "name": "QtOrder",
