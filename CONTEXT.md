@@ -103,6 +103,6 @@ _Avoid_: manifest、版本檔
 
 ## 券商交付
 
-**券商識別**：安裝、下載檔案與更新清單的正式識別。QtOrder 僅有 `taishin`、`zf-mega`、`capital`；QtTrade 僅有 `kgi`。QtOrder 的三家共用版本號與發布通道，但每個版本只含發布時勾選的券商，包含的每一家各有安裝程式與更新套件；各家的最新版本與最低支援版本各自計算，啟動器只能選用自身券商的檔案。`mega` 僅供下單機接受舊 profile，不作發布識別。
+**券商識別**：安裝、下載檔案與更新清單的正式識別，即券商代碼，JSON 欄位一律叫 `brokerCode`（QtAdmin ADR-0058）。QtOrder 僅有 `taishin`、`zf-mega`、`capital`；QtTrade 僅有 `kgi`。QtOrder 的三家共用版本號與發布通道，但每個版本只含發布時勾選的券商，包含的每一家各有安裝程式與更新套件；各家的最新版本與最低支援版本各自計算，啟動器只能選用自身券商的檔案。`mega` 僅供下單機接受舊 profile，不作發布識別。
 
 模型決策見 [ADR-0004](docs/adr/0004-single-broker-release-assets.md)、[ADR-0005](docs/adr/0005-per-broker-releases.md)、[ADR-0006](docs/adr/0006-qttrade-as-separate-product.md)。

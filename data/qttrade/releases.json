@@ -1,6 +1,6 @@
 {
   "$schema": "../releases.schema.json",
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "mock": false,
   "generatedAt": "2026-10-14T00:00:00+08:00",
   "product": {
@@ -14,7 +14,7 @@
     ],
     "brokerRequirements": [
       {
-        "broker": "凱基期貨",
+        "brokerName": "凱基期貨",
         "items": [
           "凱基期貨帳號",
           "凱基憑證（.pfx）"

@@ -50,12 +50,12 @@ export const tagOf = (product, version) => `${product.tagPrefix}${version}`;
 export const assetName = (product, kind, broker, version) => (kind === 'installer'
   ? `Setup_${product.name}_${broker}_v${version}.exe`
   : `${product.name}_${broker}_v${version}.zip`);
-export const findAsset = (release, kind, broker) => release.assets.find((asset) => asset.kind === kind && asset.broker === broker) ?? null;
+export const findAsset = (release, kind, broker) => release.assets.find((asset) => asset.kind === kind && asset.brokerCode === broker) ?? null;
 
 /* 每個版本只含發布時勾選的券商（ADR-0005），由下載檔案推導，不另存欄位。
  * 以下的 broker 參數省略時不分券商，供頁面顯示整體歷程。 */
-export const brokersOf = (release) => ALL_BROKERS.filter((broker) => release.assets.some((asset) => asset.broker === broker));
-export const includesBroker = (release, broker) => broker === undefined || release.assets.some((asset) => asset.broker === broker);
+export const brokersOf = (release) => ALL_BROKERS.filter((broker) => release.assets.some((asset) => asset.brokerCode === broker));
+export const includesBroker = (release, broker) => broker === undefined || release.assets.some((asset) => asset.brokerCode === broker);
 
 function highest(releases) {
   return releases.reduce((best, release) => (!best || compareVersions(release.version, best.version) > 0 ? release : best), null);
@@ -83,7 +83,8 @@ export function minInstallerVersion(releases, target, broker) {
 }
 
 /* 更新清單沿用啟動器既有的欄位（stable／preview／min_version），另加更新套件的 SHA-256 與大小，
- * 以及需要重新安裝時的 min_installer_version。各家各自取包含它的最新版本；還沒有穩定版的券商不列入，
+ * 以及需要重新安裝時的 min_installer_version。schemaVersion 3 起各通道以 brokerCode 標示券商代碼（QtAdmin ADR-0058），
+ * 不再輸出舊的 broker 欄位：停機整批換版，不保留相容。各家各自取包含它的最新版本；還沒有穩定版的券商不列入，
  * 啟動器找不到自身券商時不更新、照常啟動本機版本。
  * 預覽版沒有更新的版本時指向穩定版，避免選預覽版的客戶被降級。 */
 export function buildUpdateManifest(data) {
@@ -92,7 +93,7 @@ export function buildUpdateManifest(data) {
     const update = findAsset(release, 'update', broker);
     const minInstaller = minInstallerVersion(data.releases, release, broker);
     return {
-      broker,
+      brokerCode: broker,
       version: release.version,
       url: update.url,
       sha256: update.sha256,
@@ -111,7 +112,7 @@ export function buildUpdateManifest(data) {
       ...(minimum && { min_version: minimum }),
     }]];
   });
-  return brokers.length ? { schemaVersion: 2, brokers: Object.fromEntries(brokers) } : null;
+  return brokers.length ? { schemaVersion: 3, brokers: Object.fromEntries(brokers) } : null;
 }
 
 /* JSON Schema 表達不了的跨欄位規則。回傳錯誤訊息陣列，空陣列代表通過。 */
@@ -130,13 +131,13 @@ export function checkReleaseRules(data) {
     if (release.promotedAt && Date.parse(release.promotedAt) < Date.parse(release.publishedAt)) errors.push(`${label}：晉升時間早於發布時間`);
     if (release.withdrawn && Date.parse(release.withdrawn.at) < Date.parse(release.publishedAt)) errors.push(`${label}：撤回時間早於發布時間`);
 
-    const foreign = [...new Set(release.assets.map((asset) => asset.broker))].filter((broker) => !product.brokers.includes(broker));
+    const foreign = [...new Set(release.assets.map((asset) => asset.brokerCode))].filter((broker) => !product.brokers.includes(broker));
     if (foreign.length) errors.push(`${label}：${product.name} 沒有這些券商：${foreign.join('、')}`);
     const included = brokersOf(release);
     if (!included.length) errors.push(`${label}：至少要包含一家券商的下載檔案`);
     for (const broker of included) {
       for (const kind of ['installer', 'update']) {
-        const count = release.assets.filter((asset) => asset.kind === kind && asset.broker === broker).length;
+        const count = release.assets.filter((asset) => asset.kind === kind && asset.brokerCode === broker).length;
         if (count !== 1) errors.push(`${label}：${broker} 必須剛好有一個 ${kind} 下載檔案，目前有 ${count} 個`);
       }
     }

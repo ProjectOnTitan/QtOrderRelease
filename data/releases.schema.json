@@ -16,7 +16,7 @@
       "type": "string"
     },
     "schemaVersion": {
-      "const": 3
+      "const": 4
     },
     "mock": {
       "type": "boolean",
@@ -31,7 +31,7 @@
       "type": "object",
       "description": "各券商的最低支援版本：本機版本低於它時，啟動器會強制更新到該券商最新的穩定版。必須是包含該券商的未撤回穩定版；該券商有任何版本時必填。",
       "propertyNames": {
-        "$ref": "#/$defs/broker"
+        "$ref": "#/$defs/brokerCode"
       },
       "additionalProperties": {
         "$ref": "#/$defs/version"
@@ -73,13 +73,14 @@
           "items": {
             "type": "object",
             "required": [
-              "broker",
+              "brokerName",
               "items"
             ],
             "additionalProperties": false,
             "properties": {
-              "broker": {
+              "brokerName": {
                 "type": "string",
+                "description": "券商中文名稱，直接顯示為該區塊的標題，例如「台新證券」；不是券商代碼。",
                 "minLength": 1
               },
               "items": {
@@ -120,7 +121,7 @@
                 "minItems": 1,
                 "uniqueItems": true,
                 "items": {
-                  "$ref": "#/$defs/broker"
+                  "$ref": "#/$defs/brokerCode"
                 }
               },
               "url": {
@@ -270,7 +271,7 @@
         "size",
         "sha256",
         "url",
-        "broker"
+        "brokerCode"
       ],
       "additionalProperties": false,
       "properties": {
@@ -298,19 +299,19 @@
           "type": "string",
           "format": "uri"
         },
-        "broker": {
-          "$ref": "#/$defs/broker"
+        "brokerCode": {
+          "$ref": "#/$defs/brokerCode"
         }
       }
     },
-    "broker": {
+    "brokerCode": {
       "enum": [
         "taishin",
         "zf-mega",
         "capital",
         "kgi"
       ],
-      "description": "券商識別，見 CONTEXT.md「券商交付」；各產品可用哪幾家由 release-model.js 的 PRODUCTS 檢查。"
+      "description": "券商代碼（QtAdmin ADR-0058 的 brokerCode，小寫），見 CONTEXT.md「券商交付」；各產品可用哪幾家由 release-model.js 的 PRODUCTS 檢查。"
     }
   }
 }

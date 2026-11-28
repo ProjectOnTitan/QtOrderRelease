@@ -21,8 +21,8 @@ const baseUrl = (version) => `https://github.com/ProjectOnTitan/QtOrderRelease/r
 const assetsJson = (version, brokers = BROKERS) => ({
   version,
   assets: brokers.flatMap(broker => [
-    { broker, name: `Setup_QtOrder_${broker}_v${version}.exe`, kind: 'installer', size: 64421888, sha256: 'c'.repeat(64) },
-    { broker, name: `QtOrder_${broker}_v${version}.zip`, kind: 'update', size: 58195968, sha256: 'd'.repeat(64) },
+    { brokerCode: broker, name: `Setup_QtOrder_${broker}_v${version}.exe`, kind: 'installer', size: 64421888, sha256: 'c'.repeat(64) },
+    { brokerCode: broker, name: `QtOrder_${broker}_v${version}.zip`, kind: 'update', size: 58195968, sha256: 'd'.repeat(64) },
   ]),
 });
 const notes = (summary = '修正與改善', extra = '') => `---\nsummary: ${summary}\nrequiresInstaller: false\n---\n\n## 修正\n- 修正一個問題\n${extra}`;
@@ -207,7 +207,23 @@ describe('發布與晉升', () => {
 describe('打包結果', () => {
   it('只取勾選券商的檔案，其他券商的檔案忽略', () => {
     const data = publish(mock, '1.6.0', 'stable', { brokers: ['zf-mega'], at: day(4) });
-    assert.deepEqual(data.releases[0].assets.map((asset) => asset.broker), ['zf-mega', 'zf-mega']);
+    assert.deepEqual(data.releases[0].assets.map((asset) => asset.brokerCode), ['zf-mega', 'zf-mega']);
+  });
+
+  // 停機整批換版（QtAdmin ADR-0058）：舊打包腳本的 broker 欄位不接受，不回退讀取
+  it('拒絕舊格式的打包結果：只有 broker、沒有 brokerCode', () => {
+    const packaged = assetsJson('1.6.0');
+    for (const asset of packaged.assets) {
+      asset.broker = asset.brokerCode;
+      delete asset.brokerCode;
+    }
+    assert.throws(() => publish(mock, '1.6.0', 'stable', { packaged, at: day(4) }), /brokerCode/);
+  });
+
+  it('寫入的發布紀錄是 schemaVersion 4，下載檔案只有 brokerCode', () => {
+    const data = firstRelease();
+    assert.equal(data.schemaVersion, 4);
+    for (const asset of data.releases[0].assets) assert.equal('broker' in asset, false);
   });
 
   it('勾選的券商不在打包結果裡時拒絕', () => {
@@ -279,8 +295,8 @@ describe('QtTrade（ADR-0006）', () => {
   const tradeAssets = (version, product = 'QtTrade') => ({
     version,
     assets: [
-      { broker: 'kgi', name: `Setup_${product}_kgi_v${version}.exe`, kind: 'installer', size: 151257088, sha256: 'e'.repeat(64) },
-      { broker: 'kgi', name: `${product}_kgi_v${version}.zip`, kind: 'update', size: 139722752, sha256: 'f'.repeat(64) },
+      { brokerCode: 'kgi', name: `Setup_${product}_kgi_v${version}.exe`, kind: 'installer', size: 151257088, sha256: 'e'.repeat(64) },
+      { brokerCode: 'kgi', name: `${product}_kgi_v${version}.zip`, kind: 'update', size: 139722752, sha256: 'f'.repeat(64) },
     ],
   });
   const tradePublish = (data, version, channel, { at = day(4), packaged } = {}) => publishRelease(data, {

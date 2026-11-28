@@ -152,7 +152,7 @@ function checkPublishable(base, { version, channel, brokers }) {
 
 function placeholderAssets(product, version, brokers) {
   return brokers.flatMap((broker) => ['installer', 'update'].map((kind) => ({
-    broker, kind, name: assetName(product, kind, broker, version),
+    brokerCode: broker, kind, name: assetName(product, kind, broker, version),
     size: 1, sha256: '0'.repeat(64), url: 'https://example.invalid/placeholder',
   })));
 }
@@ -193,7 +193,7 @@ const ordered = (record) => Object.fromEntries(Object.entries(record)
 function addRelease(base, { version, channel, sourceCommit, at, summary, requiresInstaller, notes, assets }) {
   // 每家的第一個穩定版同時是那家的最低支援版本：最低支援版本必須是包含這家的未撤回穩定版
   const firstStable = channel === 'stable'
-    ? [...new Set(assets.map((asset) => asset.broker))].filter((broker) => !latestStable(base.releases, broker))
+    ? [...new Set(assets.map((asset) => asset.brokerCode))].filter((broker) => !latestStable(base.releases, broker))
     : [];
   const release = {
     version,
@@ -208,7 +208,7 @@ function addRelease(base, { version, channel, sourceCommit, at, summary, require
   };
   return ordered({
     ...base,
-    schemaVersion: 3,
+    schemaVersion: 4,
     generatedAt: at,
     ...(firstStable.length && {
       minimumVersions: { ...base.minimumVersions, ...Object.fromEntries(firstStable.map((broker) => [broker, version])) },
@@ -226,7 +226,8 @@ export function applyComponents(data, components, { at = taipeiNow() } = {}) {
 }
 
 /* 新增一個版本，只含勾選的券商。assets.json 由產品的打包腳本產生（QtOrder 是 deploy/package-all.ps1）：
- * { version, assets: [{ broker, name, kind, size, sha256 }] }，可能含沒勾選的券商，這裡只取勾選的。
+ * { version, assets: [{ brokerCode, name, kind, size, sha256 }] }，可能含沒勾選的券商，這裡只取勾選的。
+ * brokerCode 是券商代碼（QtAdmin ADR-0058）；舊打包腳本產生的 broker 欄位不接受，停機整批換版不保留相容。
  * 有 components 時一併更新必要元件，與這次發布的安裝程式一致。 */
 export function publishRelease(data, { version, channel, sourceCommit, brokers, notesMarkdown, assetsJson, baseUrl, components, at = taipeiNow() }) {
   const product = productOf(data);
@@ -239,15 +240,18 @@ export function publishRelease(data, { version, channel, sourceCommit, brokers, 
 
   const { summary, requiresInstaller, notes } = parseReleaseNotes(notesMarkdown);
   if (!Array.isArray(assetsJson.assets)) fail('assets.json 缺少 assets');
+  if (assetsJson.assets.some((asset) => asset?.brokerCode === undefined)) {
+    fail('assets.json 的每個檔案都必須有 brokerCode（舊格式的 broker 欄位已不接受）：請以新版打包腳本重新打包');
+  }
   const assets = selected.flatMap((broker) => {
-    if (!assetsJson.assets.some((asset) => asset.broker === broker)) fail(`assets.json 沒有 ${broker} 的檔案：這次打包沒有包含它`);
+    if (!assetsJson.assets.some((asset) => asset.brokerCode === broker)) fail(`assets.json 沒有 ${broker} 的檔案：這次打包沒有包含它`);
     return ['installer', 'update'].map((kind) => {
-      const matches = assetsJson.assets.filter((asset) => asset.broker === broker && asset.kind === kind);
+      const matches = assetsJson.assets.filter((asset) => asset.brokerCode === broker && asset.kind === kind);
       if (matches.length !== 1) fail(`assets.json 的 ${broker}/${kind} 必須恰好一個`);
       const asset = matches[0];
       if (!Number.isSafeInteger(asset.size) || asset.size <= 0 || !/^[0-9a-f]{64}$/.test(asset.sha256)) fail('assets.json 缺少有效大小或雜湊');
       if (asset.name !== assetName(product, kind, broker, version)) fail('下載檔名與產品、券商、版本或檔案種類不符');
-      return { name: asset.name, broker, kind, size: asset.size, sha256: asset.sha256, url: `${baseUrl.replace(/\/$/, '')}/${encodeURIComponent(asset.name)}` };
+      return { name: asset.name, brokerCode: broker, kind, size: asset.size, sha256: asset.sha256, url: `${baseUrl.replace(/\/$/, '')}/${encodeURIComponent(asset.name)}` };
     });
   });
   return addRelease(base, { version, channel, sourceCommit, at, summary, requiresInstaller, notes, assets });

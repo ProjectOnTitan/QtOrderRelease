@@ -78,13 +78,13 @@ CI 會擋下這些錯誤：版本號帶預覽標記、重複或沒有隨發布�
 
 ## 發布紀錄重點
 
-完整定義見 [`data/releases.schema.json`](data/releases.schema.json)。目前是 schemaVersion 3（與更新清單的 schemaVersion 無關），兩個產品共用。
+完整定義見 [`data/releases.schema.json`](data/releases.schema.json)。目前是 schemaVersion 4（與更新清單的 schemaVersion 無關），兩個產品共用。券商代碼一律以 `brokerCode` 表示（QtAdmin ADR-0058）；schemaVersion 3 以前的 `broker` 欄位已不接受。
 
 | 欄位 | 說明 |
 | --- | --- |
 | `product.id` | 產品識別：`qttrade`；省略時是 QtOrder（QtOrder 的發布紀錄早於多產品，沒有這個欄位） |
 | `minimumVersions` | 各券商的最低支援版本，例如 `{ "capital": "1.6.0" }`；還沒有任何版本的券商不能設定 |
-| `product.requirements`、`product.brokerRequirements` | 系統需求與各券商的前置條件 |
+| `product.requirements`、`product.brokerRequirements` | 系統需求與各券商的前置條件；`brokerRequirements[].brokerName` 是顯示用的券商中文名稱（例如「台新證券」），不是券商代碼 |
 | `product.components` | 各券商需要另外安裝的元件、用途、適用券商與官方載點（只接受 https）；QtOrder 安裝程式缺少時會自動安裝（QtOrder ADR-0047）。不要手動編輯：QtOrder 發布時以打包 commit 的 `deploy/prerequisites.ps1 -Action Export` 寫入（QtOrder ADR-0049）；沒有新版本、只改元件時，在本機匯出後執行 `node scripts/release-record.js components --components <components.json>` 再發 PR |
 | `releases[].version` | 純數字三段（例如 `1.7.1`），不得帶 `-preview` 等標記，見 [ADR-0001](docs/adr/0001-promotion-based-versioning.md) |
 | `releases[].channel` | `preview` 或 `stable`，晉升時改變 |
@@ -94,22 +94,23 @@ CI 會擋下這些錯誤：版本號帶預覽標記、重複或沒有隨發布�
 | `releases[].requiresInstaller` | 需重新安裝：這個版本更新了券商元件、啟動器或安裝程式，啟動器不會套用更新套件 |
 | `releases[].summary` | 一句話摘要，也是啟動器更新提示的內容 |
 | `releases[].notes` | 版本說明：`upgradeNotes`（升級須知）、`features`、`improvements`、`fixes`、`knownIssues` |
-| `releases[].assets` | 包含的每家各一個 `installer` 與 `update`，一家 2 個、最多 6 個；各含 `broker`、`size` 與 `sha256`。版本包含哪些券商由這裡推導 |
+| `releases[].assets` | 包含的每家各一個 `installer` 與 `update`，一家 2 個、最多 6 個；各含 `brokerCode`（券商代碼）、`size` 與 `sha256`。版本包含哪些券商由這裡推導 |
 
 各通道的最新版本按券商各自取包含它、未撤回的最高版本號；某家的預覽版沒有比它的穩定版新時，頁面提示改用穩定版，更新清單的 `preview` 也指向穩定版。
 
 ## 更新清單（`update.json`、`qttrade/update.json`）
 
-兩個產品的更新清單格式相同，各自只列自己的券商。更新清單使用 schemaVersion 2，先選券商，再讀發布通道。各家的版本可能不同；還沒有穩定版的券商不列入。
-啟動器缺自身券商或券商識別不符時拒絕更新、照常啟動本機版本，不回退其他券商。
+兩個產品的更新清單格式相同，各自只列自己的券商。更新清單使用 schemaVersion 3，先以券商代碼選出 `brokers` 下的那一家，再讀發布通道；各通道以 `brokerCode` 標示券商代碼。各家的版本可能不同；還沒有穩定版的券商不列入。
+啟動器缺自身券商或券商代碼不符時拒絕更新、照常啟動本機版本，不回退其他券商。
+schemaVersion 2（通道用 `broker` 欄位）的清單一律拒絕：停機整批換版、不保留相容，已安裝舊版啟動器的客戶要重新執行安裝程式。
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "brokers": {
     "taishin": {
       "stable": {
-        "broker": "taishin",
+        "brokerCode": "taishin",
         "version": "1.7.1",
         "url": "…/QtOrder_taishin_v1.7.1.zip",
         "sha256": "…",
@@ -117,7 +118,7 @@ CI 會擋下這些錯誤：版本號帶預覽標記、重複或沒有隨發布�
         "description": "…"
       },
       "preview": {
-        "broker": "taishin",
+        "brokerCode": "taishin",
         "version": "1.8.0",
         "url": "…/QtOrder_taishin_v1.8.0.zip",
         "sha256": "…",
@@ -129,7 +130,7 @@ CI 會擋下這些錯誤：版本號帶預覽標記、重複或沒有隨發布�
     },
     "capital": {
       "stable": {
-        "broker": "capital",
+        "brokerCode": "capital",
         "version": "1.7.2",
         "url": "…/QtOrder_capital_v1.7.2.zip",
         "sha256": "…",
@@ -137,7 +138,7 @@ CI 會擋下這些錯誤：版本號帶預覽標記、重複或沒有隨發布�
         "description": "…"
       },
       "preview": {
-        "broker": "capital",
+        "brokerCode": "capital",
         "version": "1.7.2",
         "url": "…/QtOrder_capital_v1.7.2.zip",
         "sha256": "…",

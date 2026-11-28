@@ -1,6 +1,6 @@
 {
   "$schema": "./releases.schema.json",
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "mock": false,
   "generatedAt": "2026-11-27T15:27:20+08:00",
   "minimumVersions": {
@@ -18,19 +18,19 @@
     ],
     "brokerRequirements": [
       {
-        "broker": "台新證券",
+        "brokerName": "台新證券",
         "items": [
           "交易憑證（.pfx）"
         ]
       },
       {
-        "broker": "兆豐證券",
+        "brokerName": "兆豐證券",
         "items": [
           "交易憑證（.pfx）"
         ]
       },
       {
-        "broker": "群益證券",
+        "brokerName": "群益證券",
         "items": [
           "交易憑證（.pfx）",
           "已開通 API 下單權限並簽署相關同意書",
@@ -158,7 +158,7 @@
       "assets": [
         {
           "name": "Setup_QtOrder_taishin_v1.6.7.exe",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "installer",
           "size": 22808181,
           "sha256": "df94b69b8ada0de7704f7b8dd76c881724c9cccfca4872d15ca845622547c9f6",
@@ -166,7 +166,7 @@
         },
         {
           "name": "QtOrder_taishin_v1.6.7.zip",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "update",
           "size": 22928324,
           "sha256": "b7c604d79492c328a5457510a3cf7390e59f41de65d25f450d54fbf513b52b92",
@@ -174,7 +174,7 @@
         },
         {
           "name": "Setup_QtOrder_zf-mega_v1.6.7.exe",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "installer",
           "size": 17826187,
           "sha256": "52b44659d97d056f6776a7c006e2aceeb32e3d477ae39d4f6ae7f663775699ce",
@@ -182,7 +182,7 @@
         },
         {
           "name": "QtOrder_zf-mega_v1.6.7.zip",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "update",
           "size": 16771960,
           "sha256": "100f2a2da293464773b708fdf3a6b2075b4ce9025f2168ef72b906226eeb8beb",
@@ -190,7 +190,7 @@
         },
         {
           "name": "Setup_QtOrder_capital_v1.6.7.exe",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "installer",
           "size": 26510830,
           "sha256": "ae5654d08001c3f9bfd821c1760c8a32c5795233839f3de74e1129d1b7b71d30",
@@ -198,7 +198,7 @@
         },
         {
           "name": "QtOrder_capital_v1.6.7.zip",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "update",
           "size": 27627188,
           "sha256": "76d848df848a60cb5cddbc22f271b95e898fcb6d865891fccdaf69fff33f1981",
@@ -234,7 +234,7 @@
       "assets": [
         {
           "name": "Setup_QtOrder_taishin_v1.6.6.exe",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "installer",
           "size": 22709387,
           "sha256": "3fe81c9d66ca11b328fa6875751b97377cd8ac11b98e9aad7e6228bc400e05af",
@@ -242,7 +242,7 @@
         },
         {
           "name": "QtOrder_taishin_v1.6.6.zip",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "update",
           "size": 22866927,
           "sha256": "e93880357246d9cd4e8d985b04ae32a864ab52eeda89b0569a90413361f3665b",
@@ -250,7 +250,7 @@
         },
         {
           "name": "Setup_QtOrder_zf-mega_v1.6.6.exe",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "installer",
           "size": 17795750,
           "sha256": "c61ff7368e871f463b0a5b537ebd3ba80faba63a2afff88346c5a10aad81d123",
@@ -258,7 +258,7 @@
         },
         {
           "name": "QtOrder_zf-mega_v1.6.6.zip",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "update",
           "size": 16713529,
           "sha256": "d42e835381c4018ff063c579457a720d6dc182b16729555ad139b88496e62842",
@@ -266,7 +266,7 @@
         },
         {
           "name": "Setup_QtOrder_capital_v1.6.6.exe",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "installer",
           "size": 26422381,
           "sha256": "8ac6d83cd6f4735abfe09be6b906c55a31b59c1baec12e61fc75a1dc97402d22",
@@ -274,7 +274,7 @@
         },
         {
           "name": "QtOrder_capital_v1.6.6.zip",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "update",
           "size": 27569673,
           "sha256": "9ff24de380c1293f8e8269fe6a0cdef0487b72fe076273ed2162c97fe357dfab",
@@ -302,7 +302,7 @@
       "assets": [
         {
           "name": "Setup_QtOrder_taishin_v1.6.5.exe",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "installer",
           "size": 22709274,
           "sha256": "a18727189c1744d5e4255623e81188aeee7ac4fc7b029eceda61d64dd15347a3",
@@ -310,7 +310,7 @@
         },
         {
           "name": "QtOrder_taishin_v1.6.5.zip",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "update",
           "size": 22866622,
           "sha256": "60395d4c3d23357f42c22bbafa965cc4a6981bcfeabab1cce89c7df2dc6a6360",
@@ -318,7 +318,7 @@
         },
         {
           "name": "Setup_QtOrder_zf-mega_v1.6.5.exe",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "installer",
           "size": 17795568,
           "sha256": "afda699ee62d62f4ca2d94cedd48fcd255067486cdc8adf199975d1b7d9d0a54",
@@ -326,7 +326,7 @@
         },
         {
           "name": "QtOrder_zf-mega_v1.6.5.zip",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "update",
           "size": 16713312,
           "sha256": "86a29b724c5a2a2b8b126451aacfb7341bf0190a2276086cc4ee8738cc81e5c9",
@@ -334,7 +334,7 @@
         },
         {
           "name": "Setup_QtOrder_capital_v1.6.5.exe",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "installer",
           "size": 26422269,
           "sha256": "e5eab825c775c888760a35ec196c70d5f94708e4af9f239a2438056b09857984",
@@ -342,7 +342,7 @@
         },
         {
           "name": "QtOrder_capital_v1.6.5.zip",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "update",
           "size": 27569320,
           "sha256": "50dcd37f26d27a5f147ddec7073c09976d65badc4f381f09932877b3205dea31",
@@ -374,7 +374,7 @@
       "assets": [
         {
           "name": "Setup_QtOrder_taishin_v1.6.4.exe",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "installer",
           "size": 22709236,
           "sha256": "e556f3b43e0acdb2b652ea787b9a1030accf8049bf21eb599a677a7e180d7b14",
@@ -382,7 +382,7 @@
         },
         {
           "name": "QtOrder_taishin_v1.6.4.zip",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "update",
           "size": 22866625,
           "sha256": "4248da511e16af802eae194fa83a4b6fb114a1084b3e553e892adb0dc426166c",
@@ -390,7 +390,7 @@
         },
         {
           "name": "Setup_QtOrder_zf-mega_v1.6.4.exe",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "installer",
           "size": 17795543,
           "sha256": "260d360c3b5f6dd816833a3282fcfcb49c86bacd6ccf2e0e305d607b9b41520f",
@@ -398,7 +398,7 @@
         },
         {
           "name": "QtOrder_zf-mega_v1.6.4.zip",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "update",
           "size": 16713305,
           "sha256": "b96d7456c84b32adc0715a2d00d9e1b89f68204842ecb6d8aa05ef5d49733d84",
@@ -406,7 +406,7 @@
         },
         {
           "name": "Setup_QtOrder_capital_v1.6.4.exe",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "installer",
           "size": 26422238,
           "sha256": "30a66481b0b71b8cf67055d68a3cf4b4281735a39343a7ac137b57f73fb17f58",
@@ -414,7 +414,7 @@
         },
         {
           "name": "QtOrder_capital_v1.6.4.zip",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "update",
           "size": 27569325,
           "sha256": "df35542bb73308e9318d1e68d3dfc13cefe7f533b962b4da5d1a2b9a6f71a785",
@@ -441,7 +441,7 @@
       "assets": [
         {
           "name": "Setup_QtOrder_taishin_v1.6.3.exe",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "installer",
           "size": 22704048,
           "sha256": "d17c1236735e6eb73664a8efc547c594c01fa13a73d1ec7dead24bedaa5385c5",
@@ -449,7 +449,7 @@
         },
         {
           "name": "QtOrder_taishin_v1.6.3.zip",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "update",
           "size": 22858984,
           "sha256": "70bd5cfcf1593c7e52cfe6ac3ec283cf762210fa5938ff8344abba0bd3230037",
@@ -457,7 +457,7 @@
         },
         {
           "name": "Setup_QtOrder_zf-mega_v1.6.3.exe",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "installer",
           "size": 17790190,
           "sha256": "6bee4d1f977bbd3e93af8dff841a36fcbb88d639a5fa7309491efa538f182df0",
@@ -465,7 +465,7 @@
         },
         {
           "name": "QtOrder_zf-mega_v1.6.3.zip",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "update",
           "size": 16707051,
           "sha256": "3abc41c2525cca88ab6b7a3bd5579d6b85ea5eadcbedc530f73c7fe883d7174f",
@@ -473,7 +473,7 @@
         },
         {
           "name": "Setup_QtOrder_capital_v1.6.3.exe",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "installer",
           "size": 26416581,
           "sha256": "2542ddd6ccd467b51a3050cdc357e8dfb2711b9a047141669cf8183e5e49caf1",
@@ -481,7 +481,7 @@
         },
         {
           "name": "QtOrder_capital_v1.6.3.zip",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "update",
           "size": 27562912,
           "sha256": "35d5d05a4f108445d207a1a4b4ca3744c755b7cdcb99c33a13bc38621151a720",
@@ -530,7 +530,7 @@
       "assets": [
         {
           "name": "Setup_QtOrder_taishin_v1.6.2.exe",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "installer",
           "size": 22704008,
           "sha256": "82df9ecc1ba29becac3029850e735cbb8acffd391e743890cabf706247429572",
@@ -538,7 +538,7 @@
         },
         {
           "name": "QtOrder_taishin_v1.6.2.zip",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "update",
           "size": 22858954,
           "sha256": "f8c3b16f2b908a668623907fd079f7c96a3906ffc52634e068129d0b885212c8",
@@ -546,7 +546,7 @@
         },
         {
           "name": "Setup_QtOrder_zf-mega_v1.6.2.exe",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "installer",
           "size": 17790167,
           "sha256": "6d47346c6bbdd866f547257345f20200d1d0d61cd243d1a12ef9419847854704",
@@ -554,7 +554,7 @@
         },
         {
           "name": "QtOrder_zf-mega_v1.6.2.zip",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "update",
           "size": 16707014,
           "sha256": "efa5b684bcda174a5bdc04fd8174fd567c0110aded519fab0dee79c6235afdfb",
@@ -562,7 +562,7 @@
         },
         {
           "name": "Setup_QtOrder_capital_v1.6.2.exe",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "installer",
           "size": 26416547,
           "sha256": "af4ff133f45d2721a41619ef3c9fe7a472c61d52961b9e884d6b750554ae68eb",
@@ -570,7 +570,7 @@
         },
         {
           "name": "QtOrder_capital_v1.6.2.zip",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "update",
           "size": 27562880,
           "sha256": "67299379bca4a8aeb5a12bd9f5e1d4c4c49a594877249bcd59e9d4347f0cc190",
@@ -607,7 +607,7 @@
       "assets": [
         {
           "name": "Setup_QtOrder_taishin_v1.6.1.exe",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "installer",
           "size": 22655566,
           "sha256": "9d3af0a77985b25eb4116df838106253713568d064ee91d05279ae18b857bd2d",
@@ -615,7 +615,7 @@
         },
         {
           "name": "QtOrder_taishin_v1.6.1.zip",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "update",
           "size": 22814203,
           "sha256": "f2b5eb51ea5371052a6b86f20125c61fd474aaf3f1653b542c4af5ebb7ce3c77",
@@ -623,7 +623,7 @@
         },
         {
           "name": "Setup_QtOrder_zf-mega_v1.6.1.exe",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "installer",
           "size": 17744520,
           "sha256": "091cc89655f66a31caa9e9d2013991faa09022bd5dacb4f4fc28860fb3df7dbb",
@@ -631,7 +631,7 @@
         },
         {
           "name": "QtOrder_zf-mega_v1.6.1.zip",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "update",
           "size": 16662532,
           "sha256": "10d2aad61fc145f1ce6d77af2a8f98895a401e19183fe96a3404ad22aa48bdc7",
@@ -639,7 +639,7 @@
         },
         {
           "name": "Setup_QtOrder_capital_v1.6.1.exe",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "installer",
           "size": 26370283,
           "sha256": "8a70979f7c919c9f3c999b95e8467be2a5ebeba1b245ea23dab1eaa6706d9101",
@@ -647,7 +647,7 @@
         },
         {
           "name": "QtOrder_capital_v1.6.1.zip",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "update",
           "size": 27518106,
           "sha256": "52a0ae60f0641f68f6286380b96987b680d64e7614c80622c21427a41b501b28",
@@ -685,7 +685,7 @@
       "assets": [
         {
           "name": "Setup_QtOrder_taishin_v1.6.0.exe",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "installer",
           "size": 21972319,
           "sha256": "7b3ae48bfa0ffbf0e26f27378c795f1a721749175263388f520d8f192c3a4e5c",
@@ -693,7 +693,7 @@
         },
         {
           "name": "QtOrder_taishin_v1.6.0.zip",
-          "broker": "taishin",
+          "brokerCode": "taishin",
           "kind": "update",
           "size": 22525158,
           "sha256": "bd806f88de5abcffd1e703e29fc21cd6ff6513a42bb2bb929d0ed515c10bc996",
@@ -701,7 +701,7 @@
         },
         {
           "name": "Setup_QtOrder_zf-mega_v1.6.0.exe",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "installer",
           "size": 17058468,
           "sha256": "5088a2d69f20462941bee5018cccdbe3c4728ad40907eb514892c1ff26812b5b",
@@ -709,7 +709,7 @@
         },
         {
           "name": "QtOrder_zf-mega_v1.6.0.zip",
-          "broker": "zf-mega",
+          "brokerCode": "zf-mega",
           "kind": "update",
           "size": 16372852,
           "sha256": "4452d3af4d8c2b836c6b8290cb8e6309804e8a6ea8ef5b7c5f959dbef35da57d",
@@ -717,7 +717,7 @@
         },
         {
           "name": "Setup_QtOrder_capital_v1.6.0.exe",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "installer",
           "size": 23015417,
           "sha256": "633034025d9bc266e83323a56d087790f0983a76f3fa50bf054c815cfb399205",
@@ -725,7 +725,7 @@
         },
         {
           "name": "QtOrder_capital_v1.6.0.zip",
-          "broker": "capital",
+          "brokerCode": "capital",
           "kind": "update",
           "size": 24154183,
           "sha256": "9893a7213d431c434dc8c84714b648140457811b8e2cdd63ef7288b8bc7d4466",

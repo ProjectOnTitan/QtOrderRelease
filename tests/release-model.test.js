@@ -25,13 +25,13 @@ function release(version, channel, { publishedAt, promotedAt, withdrawn, require
     ...(withdrawn && { withdrawn }),
     ...(requiresInstaller && { requiresInstaller }),
     summary: `v${version}`,
-    assets: brokers.flatMap(broker => [{ ...asset('installer', `Setup_QtOrder_${broker}_v${version}.exe`), broker }, { ...asset('update', `QtOrder_${broker}_v${version}.zip`), broker }]),
+    assets: brokers.flatMap(broker => [{ ...asset('installer', `Setup_QtOrder_${broker}_v${version}.exe`), brokerCode: broker }, { ...asset('update', `QtOrder_${broker}_v${version}.zip`), brokerCode: broker }]),
   };
 }
 
 // minimumVersions 預設替每一家都設成同一個版本；個別券商不同時直接傳物件
 const record = (releases, minimum = '1.0.0') => ({
-  schemaVersion: 3,
+  schemaVersion: 4,
   generatedAt: '2026-10-01T00:00:00+08:00',
   product: { name: 'QtOrder' },
   minimumVersions: typeof minimum === 'string' ? Object.fromEntries(BROKERS.map((broker) => [broker, minimum])) : minimum,
@@ -96,7 +96,7 @@ describe('更新清單', () => {
   it('沿用啟動器既有欄位，並附上更新套件的雜湊與大小', () => {
     const manifest = buildUpdateManifest(mock);
     assert.deepEqual(Object.keys(manifest), ['schemaVersion', 'brokers']);
-    assert.equal(manifest.schemaVersion, 2);
+    assert.equal(manifest.schemaVersion, 3);
     assert.deepEqual(Object.keys(manifest.brokers), ['taishin', 'zf-mega', 'capital']);
     assert.deepEqual(Object.keys(manifest.brokers.taishin), ['stable', 'preview', 'min_version']);
     assert.match(manifest.brokers.taishin.stable.url, /QtOrder_taishin_v1\.6\.2\.zip$/);
@@ -256,11 +256,12 @@ describe('多產品（ADR-0006）', () => {
 
   it('QtTrade 的更新清單只有 kgi，下載網址用 QtTrade 的 tag 與檔名', () => {
     const manifest = buildUpdateManifest(qttradeMock);
-    assert.equal(manifest.schemaVersion, 2);
+    assert.equal(manifest.schemaVersion, 3);
     assert.deepEqual(Object.keys(manifest.brokers), ['kgi']);
     const { stable, preview, min_version: minimum } = manifest.brokers.kgi;
     assert.equal(stable.version, '1.0.1');
-    assert.equal(stable.broker, 'kgi');
+    assert.equal(stable.brokerCode, 'kgi');
+    assert.equal('broker' in stable, false);
     assert.match(stable.url, /\/qttrade-v1\.0\.1\/QtTrade_kgi_v1\.0\.1\.zip$/);
     assert.equal(stable.min_installer_version, '1.0.0');
     assert.equal(preview.version, '1.1.0');
@@ -270,11 +271,11 @@ describe('多產品（ADR-0006）', () => {
 
   it('兩個產品的券商不能混用', () => {
     const order = structuredClone(mock);
-    order.releases[0].assets.forEach((asset) => { asset.broker = 'kgi'; });
+    order.releases[0].assets.forEach((asset) => { asset.brokerCode = 'kgi'; });
     assert.ok(checkReleaseRules(order).some((error) => /QtOrder 沒有這些券商：kgi/.test(error)));
 
     const trade = structuredClone(qttradeMock);
-    trade.releases[0].assets[0].broker = 'taishin';
+    trade.releases[0].assets[0].brokerCode = 'taishin';
     assert.ok(checkReleaseRules(trade).some((error) => /QtTrade 沒有這些券商：taishin/.test(error)));
 
     const minimum = structuredClone(mock);
@@ -299,7 +300,7 @@ describe('券商交付邊界', () => {
     for (const broker of BROKERS) {
       const selected = manifest.brokers[broker];
       for (const track of ['stable', 'preview']) {
-        assert.equal(selected[track].broker, broker);
+        assert.equal(selected[track].brokerCode, broker);
         assert.ok(selected[track].url.includes('_' + broker + '_'));
       }
       assert.equal(selected.min_version, mock.minimumVersions[broker]);
@@ -310,12 +311,31 @@ describe('券商交付邊界', () => {
     for (const change of [
       assets => assets.pop(),
       assets => { assets[0] = { ...assets[1] }; },
-      assets => { assets[0].broker = 'mega'; },
+      assets => { assets[0].brokerCode = 'mega'; },
       assets => assets.splice(0),
     ]) {
       const data = structuredClone(mock);
       change(data.releases[0].assets);
       assert.ok(validateReleaseData(data, schema).length > 0);
     }
+  });
+
+  // 停機整批換版（QtAdmin ADR-0058），舊格式一律拒絕，不保留相容
+  it('拒絕舊格式的發布紀錄：schemaVersion 3、下載檔案只有 broker、前置條件用 broker', () => {
+    const oldVersion = structuredClone(mock);
+    oldVersion.schemaVersion = 3;
+    assert.ok(validateReleaseData(oldVersion, schema).some((error) => /schemaVersion/.test(error)));
+
+    const oldAsset = structuredClone(mock);
+    const [first] = oldAsset.releases[0].assets;
+    first.broker = first.brokerCode;
+    delete first.brokerCode;
+    assert.ok(validateReleaseData(oldAsset, schema).some((error) => /brokerCode/.test(error)));
+
+    const oldRequirement = structuredClone(mock);
+    const [requirement] = oldRequirement.product.brokerRequirements;
+    requirement.broker = requirement.brokerName;
+    delete requirement.brokerName;
+    assert.ok(validateReleaseData(oldRequirement, schema).some((error) => /brokerName/.test(error)));
   });
 });

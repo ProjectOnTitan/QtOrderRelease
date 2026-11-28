@@ -157,7 +157,7 @@ function downloadButton(asset, variant, describedBy) {
   const href = safeUrl(asset.url);
   if (!href) return null;
   return el('a', { class: `btn btn--${variant} btn--lg`, href, 'aria-describedby': describedBy },
-    `下載${BROKER_NAMES[asset.broker]}${ASSET_KINDS[asset.kind]?.label ?? '檔案'}`);
+    `下載${BROKER_NAMES[asset.brokerCode]}${ASSET_KINDS[asset.kind]?.label ?? '檔案'}`);
 }
 
 function copyButton(value, what) {
@@ -513,7 +513,7 @@ function createProductView(product, root) {
       el('span', { class: 'asset__icon' }, icon(kind.icon)),
       el('div', { class: 'asset__body' },
         el('p', { class: 'asset__name' }, asset.name),
-        el('p', { class: 'asset__meta' }, [BROKER_NAMES[asset.broker], kind.label, formatSize(asset.size)].filter(Boolean).join(' · ')),
+        el('p', { class: 'asset__meta' }, [BROKER_NAMES[asset.brokerCode], kind.label, formatSize(asset.size)].filter(Boolean).join(' · ')),
         hashRow(asset)),
       href && el('a', { class: 'btn btn--secondary asset__download', href },
         icon('i-download'), '下載', el('span', { class: 'visually-hidden' }, ` ${asset.name}`)));
@@ -571,8 +571,8 @@ function createProductView(product, root) {
       : [el('li', {}, '請洽營業員取得系統需求。')]));
 
     const brokers = Array.isArray(productData?.brokerRequirements) ? productData.brokerRequirements : [];
-    q('[data-broker-requirements]').replaceChildren(...brokers.map(({ broker, items }) => el('section', { class: 'broker-req' },
-      el('h4', {}, broker),
+    q('[data-broker-requirements]').replaceChildren(...brokers.map(({ brokerName, items }) => el('section', { class: 'broker-req' },
+      el('h4', {}, brokerName),
       el('ul', { class: 'req-list req-list--compact' }, items.map((item) => el('li', {}, icon('i-circle-check', 'icon icon--sm'), el('span', {}, richText(item))))))));
 
     renderComponents(productData);
