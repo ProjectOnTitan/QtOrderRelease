@@ -2,7 +2,7 @@
   "$schema": "./releases.schema.json",
   "schemaVersion": 4,
   "mock": false,
-  "generatedAt": "2026-11-27T15:27:20+08:00",
+  "generatedAt": "2026-11-28T12:25:10+08:00",
   "minimumVersions": {
     "taishin": "1.6.3",
     "zf-mega": "1.6.3",
@@ -69,6 +69,75 @@
     ]
   },
   "releases": [
+    {
+      "version": "1.6.9",
+      "channel": "stable",
+      "publishedAt": "2026-11-28T12:25:10+08:00",
+      "sourceCommit": "bf6f7647d956cf7afe94e0ffc0a2744167f0a9db",
+      "requiresInstaller": true,
+      "summary": "配合平台券商資料格式更新，策略授權、訊號連線與版本更新改用新格式；所有客戶須下載 1.6.9 安裝程式重新安裝。",
+      "releaseUrl": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/tag/v1.6.9",
+      "notes": {
+        "upgradeNotes": [
+          "平台已更新券商資料格式，舊版下單程式無法再取得策略授權與訊號，請至發布中心下載所使用券商的 1.6.9 安裝程式覆蓋安裝。",
+          "舊版啟動器讀不到新的版本資訊，不會自動更新到本版，必須手動執行安裝程式；安裝後即恢復自動更新。",
+          "1.6.9 為最低支援版本，低於此版本的下單程式無法繼續使用。"
+        ],
+        "improvements": [
+          "策略授權、訊號連線與版本更新檢查改用平台統一的券商代碼，與平台及其他交易程式一致。"
+        ]
+      },
+      "assets": [
+        {
+          "name": "Setup_QtOrder_taishin_v1.6.9.exe",
+          "brokerCode": "taishin",
+          "kind": "installer",
+          "size": 22815131,
+          "sha256": "9a2ffa46ed6c350d527349fa1aeb8895e61ec132b04a38eb09f13a33d7236097",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.9/Setup_QtOrder_taishin_v1.6.9.exe"
+        },
+        {
+          "name": "QtOrder_taishin_v1.6.9.zip",
+          "brokerCode": "taishin",
+          "kind": "update",
+          "size": 22935596,
+          "sha256": "8c87c02f4a3637c303f4f8f0236f052d0a06cf3a5e727cccaf8f7d00c3737c58",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.9/QtOrder_taishin_v1.6.9.zip"
+        },
+        {
+          "name": "Setup_QtOrder_zf-mega_v1.6.9.exe",
+          "brokerCode": "zf-mega",
+          "kind": "installer",
+          "size": 17833351,
+          "sha256": "6687a93a4819073c9b6dc54e116f1eb1df384b4273d14ab0a85fd4aa0170fcca",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.9/Setup_QtOrder_zf-mega_v1.6.9.exe"
+        },
+        {
+          "name": "QtOrder_zf-mega_v1.6.9.zip",
+          "brokerCode": "zf-mega",
+          "kind": "update",
+          "size": 16779059,
+          "sha256": "c30b19326ef96ec3faf908d56e0f7e0372f8063f6f41992816750a951ffd700d",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.9/QtOrder_zf-mega_v1.6.9.zip"
+        },
+        {
+          "name": "Setup_QtOrder_capital_v1.6.9.exe",
+          "brokerCode": "capital",
+          "kind": "installer",
+          "size": 26517764,
+          "sha256": "a3a6fffb2ede2f5723740c0658576996a090a0d5c9419824382d595e91155f53",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.9/Setup_QtOrder_capital_v1.6.9.exe"
+        },
+        {
+          "name": "QtOrder_capital_v1.6.9.zip",
+          "brokerCode": "capital",
+          "kind": "update",
+          "size": 27633943,
+          "sha256": "71022d3fd278c5b4c9cbcefa7ccd9fd715e8452cb03a59b48a38e2877cabad97",
+          "url": "https://github.com/ProjectOnTitan/QtOrderRelease/releases/download/v1.6.9/QtOrder_capital_v1.6.9.zip"
+        }
+      ]
+    },
     {
       "version": "1.6.8",
       "channel": "preview",
